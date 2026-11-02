@@ -1,0 +1,2290 @@
+<!DOCTYPE html>
+<html lang="en" class="dark"><head><script data-bard-client-injected="true">(function(firebaseConfig, initialAuthToken, appId) {
+        window.__firebase_config = firebaseConfig;
+        window.__initial_auth_token = initialAuthToken;
+        window.__app_id = appId;
+            })("\n{\n  \"apiKey\": \"AIzaSyCqyCcs2R2e7AegGjvFAwG98wlamtbHvZY\",\n  \"authDomain\": \"bard-frontend.firebaseapp.com\",\n  \"projectId\": \"bard-frontend\",\n  \"storageBucket\": \"bard-frontend.firebasestorage.app\",\n  \"messagingSenderId\": \"175205271074\",\n  \"appId\": \"1:175205271074:web:2b7bd4d34d33bf38e6ec7b\"\n}\n","eyJhbGciOiJSUzI1NiIsImtpZCI6IjExNjRiNzdiNDMzZDdhMDAyMWI4NjE4YjhjYTU3ZTMyZGI5MWUxMTMiLCJ0eXAiOiJKV1QifQ.eyJzdWIiOiJmaXJlYmFzZS1hZG1pbnNkay1mYnN2Y0BiYXJkLWZyb250ZW5kLmlhbS5nc2VydmljZWFjY291bnQuY29tIiwiYXVkIjoiaHR0cHM6Ly9pZGVudGl0eXRvb2xraXQuZ29vZ2xlYXBpcy5jb20vZ29vZ2xlLmlkZW50aXR5LmlkZW50aXR5dG9vbGtpdC52MS5JZGVudGl0eVRvb2xraXQiLCJ1aWQiOiIwNjYxNDMyOTEzNTA4NTgyOTc5OCIsImlzcyI6ImZpcmViYXNlLWFkbWluc2RrLWZic3ZjQGJhcmQtZnJvbnRlbmQuaWFtLmdzZXJ2aWNlYWNjb3VudC5jb20iLCJjbGFpbXMiOnsiYXBwSWQiOiJjX2Q4ZTc4MzcwY2NmMmMxOWZfY2VhZGJjOTlfaW5kZXguaHRtbC0yOTgifSwiZXhwIjoxNzkzNTk0ODQ5LCJpYXQiOjE3OTM1OTEyNDksImFsZyI6IlJTMjU2In0.gk-DBggRAsnlFmxEp1mLQw_IXBM3ERlFLdK_VGA34oCUVoBwQruXxDDtD_-Y_ho51GiGv7bhbri_qT9rRbBQsXGILUa5w54cQ8ZQObpMOAHjJR9wbqQMtv_1q2wDk9DZJsJWejeAlM-vANxl7TlyZTKN-ylIJt2g3XkhO2PbINil_YqJJphCiSnsmMwCRVmkc3AJKkzpk-j9dXG813hBRgCE8RjJ5j-1NaXueVUDO6k7JqGid8SJF1qMm7Ic-RdlVOHme_xIvlvoOxZKN_HK-AFJlApwtVobkQH_-AK-DEibc2p9AaktwqkyQYCAoLABU-cdbOHB-d7fQYYyjyS2xQ","c_d8e78370ccf2c19f_ceadbc99_index.html-298")</script><script data-bard-client-injected="true">
+  document.addEventListener('input', (event) => {
+    if (event.target && (event.target.isContentEditable || event.target.hasAttribute('contenteditable'))) {
+      const clonedDoc = document.cloneNode(true);
+      const injectedScripts = clonedDoc.querySelectorAll('[data-bard-client-injected="true"]');
+      injectedScripts.forEach(el => el.remove());
+      window.parent.postMessage({
+        type: 'inlineEdit',
+        html: '<!DOCTYPE html>\n' + clonedDoc.documentElement.outerHTML
+      }, '*');
+    }
+  });
+</script><script data-bard-client-injected="true">(function(){'use strict';window.addEventListener("message",a=>{a.data&&a.data.type==="SUPPLEMENTAL_DATA_UPDATE"&&window.dispatchEvent(new CustomEvent("supplementaldataupdate",{detail:a.data.data}))});}).call(this);
+</script><script data-bard-client-injected="true">(function() {
+  const SCROLL_KEYS = new Set([
+    'ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight',
+    ' ', 'Spacebar', 'PageUp', 'PageDown', 'Home', 'End',
+  ]);
+  const HORIZONTAL_KEYS = new Set(['ArrowLeft', 'ArrowRight']);
+
+  function isTextEntryTarget(target) {
+    if (!target) return false;
+    const tagName = target.tagName;
+    return tagName === 'INPUT' || tagName === 'TEXTAREA' ||
+        tagName === 'SELECT' || target.isContentEditable === true;
+  }
+
+  // An element absorbs the key only if it both overflows on the axis being
+  // scrolled and is configured to scroll on that axis. The cheap dimension
+  // test runs first because getComputedStyle forces a style recalc, and this
+  // runs on every keypress. Each axis is read from its own longhand: the
+  // 'overflow' shorthand serializes as two values when the axes differ, which
+  // is the common 'overflow-x: hidden; overflow-y: auto' pane.
+  function canScroll(node, horizontal) {
+    const overflows = horizontal ? node.scrollWidth > node.clientWidth
+                                 : node.scrollHeight > node.clientHeight;
+    if (!overflows) return false;
+    const style = window.getComputedStyle(node);
+    const overflow = horizontal ? style.overflowX : style.overflowY;
+    return overflow === 'auto' || overflow === 'scroll';
+  }
+
+  // Walks up from the event target so nested scrollers keep their behavior.
+  // <body> is included because pages that pin the root height make it the
+  // scroll container.
+  function hasScrollableAncestor(target, horizontal) {
+    let node = target;
+    while (node && node !== document.documentElement) {
+      if (canScroll(node, horizontal)) return true;
+      node = node.parentElement;
+    }
+    return false;
+  }
+
+  function rootCanScroll(horizontal) {
+    const scroller = document.scrollingElement || document.documentElement;
+    if (!scroller) return false;
+    // Tolerate a pixel of rounding so subpixel layouts do not look scrollable.
+    return horizontal ? scroller.scrollWidth > window.innerWidth + 1
+                      : scroller.scrollHeight > window.innerHeight + 1;
+  }
+
+  window.addEventListener('keydown', function(event) {
+    if (!SCROLL_KEYS.has(event.key)) return;
+    if (event.defaultPrevented) return;
+    // Alt and Meta turn arrows into browser history navigation, and Ctrl is
+    // reserved for shortcuts, so none of them are scroll intent.
+    if (event.altKey || event.metaKey || event.ctrlKey) return;
+
+    const target = event.target;
+    if (isTextEntryTarget(target)) return;
+
+    // Anything that can still absorb the scroll gets to keep it.
+    const horizontal = HORIZONTAL_KEYS.has(event.key);
+    if (rootCanScroll(horizontal)) return;
+    if (hasScrollableAncestor(target, horizontal)) return;
+
+    event.preventDefault();
+  }, {capture: true, passive: false});
+})();</script><script data-bard-client-injected="true">(function() {
+  // Ensure this script is executed only once
+  if (window.firebaseAuthBridgeScriptLoaded) {
+    return;
+  }
+  window.firebaseAuthBridgeScriptLoaded = true;
+
+  let nextTokenPromiseId = 0;
+
+  // Stores { resolve, reject } for ongoing token requests
+  const pendingTokenPromises = {};
+
+  // Listen for messages from the Host Application
+  window.addEventListener('message', function(event) {
+
+    const messageData = event.data;
+
+  if (messageData && messageData.type === 'RESOLVE_NEW_FIREBASE_TOKEN') {
+      const { success, token, error, promiseId } = messageData ?? {};
+      if (pendingTokenPromises[promiseId]) {
+        if (success) {
+          pendingTokenPromises[promiseId].resolve(token);
+        } else {
+          pendingTokenPromises[promiseId].reject(new Error(error || 'Token refresh failed from host.'));
+        }
+        delete pendingTokenPromises[promiseId];
+      }
+    }
+  });
+
+  // Expose a function for the Generated App to request a new Firebase token
+  window.requestNewFirebaseToken = function() {
+    const currentPromiseId = nextTokenPromiseId++;
+    const promise = new Promise((resolve, reject) => {
+      pendingTokenPromises[currentPromiseId] = { resolve, reject };
+    });
+    if (window.parent && window.parent !== window) {
+      window.parent.postMessage({
+        type: 'REQUEST_NEW_FIREBASE_TOKEN',
+        promiseId: currentPromiseId
+      }, '*');
+    } else {
+      pendingTokenPromises[currentPromiseId].reject(new Error('No parent window to request token from.'));
+      delete pendingTokenPromises[currentPromiseId];
+    }
+    return promise;
+  };
+})();</script><script data-bard-client-injected="true">
+let realOriginalGetUserMedia = null;
+if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+  realOriginalGetUserMedia = navigator.mediaDevices.getUserMedia.bind(navigator.mediaDevices);
+}
+
+(function() {
+  if (navigator.mediaDevices && navigator.mediaDevices.__proto__) {
+    try {
+      Object.defineProperty(navigator.mediaDevices.__proto__, 'getUserMedia', {
+        get: function() {
+          return undefined; // Or throw an error
+        },
+        configurable: false
+      });
+    } catch (error) {
+      console.error("Error defining prototype getter:", error);
+    }
+  }
+})();
+
+(function() {
+  const pendingMediaResolvers = {};
+  let nextMediaPromiseId = 0;
+
+  function requestMediaPermissions(constraints) {
+    const mediaPromiseId = nextMediaPromiseId++;
+    const promise = new Promise((resolve, reject) => {
+      pendingMediaResolvers[mediaPromiseId] = (granted) => {
+        delete pendingMediaResolvers[mediaPromiseId];
+        resolve(granted);
+      };
+    });
+
+    window.parent.postMessage({
+      type: 'requestMediaPermission',
+      constraints: constraints,
+      promiseId: mediaPromiseId,
+    }, '*');
+
+    return promise;
+  }
+
+  let originalGetUserMedia = realOriginalGetUserMedia;
+
+  function interceptGetUserMedia() {
+    if (navigator.mediaDevices) {
+      Object.defineProperty(navigator.mediaDevices, 'getUserMedia', {
+        value: function(constraints) {
+          return requestMediaPermissions(constraints).then((granted) => {
+            if (granted) {
+              if (originalGetUserMedia) {
+                return originalGetUserMedia(constraints);
+              } else {
+                throw new Error("Original getUserMedia not available.");
+              }
+            } else {
+              throw new DOMException('Permission denied', 'NotAllowedError');
+            }
+          });
+        },
+        writable: false,
+        configurable: false
+      });
+    }
+  }
+
+  interceptGetUserMedia();
+
+  const observer = new MutationObserver(function(mutationsList, observer) {
+    for (const mutation of mutationsList) {
+      if (mutation.type === 'reconfigured' && mutation.name === 'getUserMedia' && mutation.object === navigator.mediaDevices) {
+        interceptGetUserMedia();
+      } else if (mutation.type === 'attributes' && mutation.attributeName === 'getUserMedia' && mutation.target === navigator.mediaDevices) {
+        interceptGetUserMedia();
+      } else if (mutation.type === 'childList' && mutation.addedNodes) {
+        mutation.addedNodes.forEach(node => {
+          if (node === navigator.mediaDevices) {
+            interceptGetUserMedia();
+          }
+        });
+      }
+    }
+  });
+
+  function interceptSpeechRecognition() {
+    if (!window.SpeechRecognition && !window.webkitSpeechRecognition) {
+      return;
+    }
+
+    const OriginalSpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+
+    const SpeechRecognitionWrapper = function(...args) {
+      const recognizer = new OriginalSpeechRecognition(...args);
+      const originalStart = recognizer.start.bind(recognizer);
+
+      recognizer.start = function() {
+        requestMediaPermissions({ audio: true }).then(granted => {
+          if (granted) {
+            originalStart();
+          } else {
+            const errorEvent = new SpeechRecognitionErrorEvent('error');
+            errorEvent.error = 'not-allowed'; // This is the standard error for permission denial.
+            recognizer.dispatchEvent(errorEvent);
+          }
+        });
+      };
+
+      return recognizer;
+    };
+
+    SpeechRecognitionWrapper.prototype = OriginalSpeechRecognition.prototype;
+    SpeechRecognitionWrapper.prototype.constructor = SpeechRecognitionWrapper;
+
+    if (window.SpeechRecognition) {
+      window.SpeechRecognition = SpeechRecognitionWrapper;
+    }
+    if (window.webkitSpeechRecognition) {
+      window.webkitSpeechRecognition = SpeechRecognitionWrapper;
+    }
+  }
+
+  interceptSpeechRecognition();
+
+  window.addEventListener('message', function(event) {
+    if (event.data) {
+      if (event.data.type === 'resolveMediaPermission') {
+        const { promiseId, granted } = event.data;
+        if (pendingMediaResolvers[promiseId]) {
+          pendingMediaResolvers[promiseId](granted);
+        }
+      }
+    }
+  });
+
+})();</script><script ws-interception-config="{&quot;parentOrigin&quot;:&quot;https://gemini.google.com&quot;,&quot;proxiedDomains&quot;:[]}" data-bard-client-injected="true">(function(){'use strict';var u=typeof Object.defineProperties=="function"?Object.defineProperty:function(b,d,e){if(b==Array.prototype||b==Object.prototype)return b;b[d]=e.value;return b};function v(b){b=["object"==typeof globalThis&&globalThis,b,"object"==typeof window&&window,"object"==typeof self&&self,"object"==typeof global&&global];for(var d=0;d<b.length;++d){var e=b[d];if(e&&e.Math==Math)return e}throw Error("Cannot find global object");}var w=v(this);
+function y(b,d){if(d)a:{var e=w;b=b.split(".");for(var h=0;h<b.length-1;h++){var k=b[h];if(!(k in e))break a;e=e[k]}b=b[b.length-1];h=e[b];d=d(h);d!=h&&d!=null&&u(e,b,{configurable:!0,writable:!0,value:d})}}function z(b){function d(h){return b.next(h)}function e(h){return b.throw(h)}return new Promise(function(h,k){function m(n){n.done?h(n.value):Promise.resolve(n.value).then(d,e).then(m,k)}m(b.next())})}y("globalThis",function(b){return b||w});/*
+
+ Copyright The Closure Library Authors.
+ SPDX-License-Identifier: Apache-2.0
+*/
+function A(b,d){function e(){}e.prototype=d.prototype;b.j=d.prototype;b.prototype=new e;b.prototype.constructor=b;b.h=function(h,k,m){for(var n=Array(arguments.length-2),p=2;p<arguments.length;p++)n[p-2]=arguments[p];return d.prototype[k].apply(h,n)}};function B(b,d,e="*"){function h(a){if(typeof a==="string")return F.encode(a).buffer;if(a instanceof ArrayBuffer)return a.slice(0);if(ArrayBuffer.isView(a))return a.buffer.slice(a.byteOffset,a.byteOffset+a.byteLength);throw Error("Invalid data type");}function k(a){a=h(a);var f={type:"send",data:new Uint8Array(a)},g;(g=r)==null||g.postMessage(f,[a])}function m(){if(!r)throw Error("Data port not captured yet.");r.onmessage=a=>{if(a.data.type==="message"){a=new MessageEvent("message",{data:G.decode(a.data.data)});
+let f;(f=c.onmessage)==null||f.call(c,a);c.dispatchEvent(a)}}}function n(){if(!t)throw Error("Control port not captured yet.");t.onmessage=a=>{switch(a.data.type){case "open":l=1;var f=new Event("open"),g;(g=c.onopen)==null||g.call(c,f);c.dispatchEvent(f);q.forEach(H=>{k(H)});q=[];break;case "close":g=a.data;l=3;g=new CloseEvent("close",{code:g.code,reason:g.reason,wasClean:g.wasClean});(f=c.onclose)==null||f.call(c,g);c.dispatchEvent(g);break;case "error":l=3;f=new Event("error");let x;(x=c.onerror)==
+null||x.call(c,f);c.dispatchEvent(f)}}}function p(a){return z(function*(){var f=new MessageChannel;t=f.port1;var g=new MessageChannel;r=g.port1;n();m();window.parent.postMessage({type:"websocket_open",portOrdering:["control","data"],url:b,protocols:a||[],connectionId:I},e,[f.port2,g.port2])}())}var c=Reflect.construct(EventTarget,[],new.target);c.CONNECTING=0;c.OPEN=1;c.CLOSING=2;c.CLOSED=3;c.url=b;c.binaryType="arraybuffer";c.protocol="";c.i="";var l=0,t=null,r=null,q=[],F=new TextEncoder,G=new TextDecoder;
+c.onopen=null;c.onmessage=null;c.onclose=null;c.onerror=null;Object.defineProperty(c,"readyState",{get:()=>l,enumerable:!0,configurable:!0});Object.defineProperty(c,"bufferedAmount",{get:()=>{var a=0;q.forEach(f=>{a+=typeof f==="string"?f.length:f.byteLength});return a},enumerable:!0,configurable:!0});var I=function(){var a;return((a=globalThis.crypto)==null?0:a.randomUUID)?globalThis.crypto.randomUUID():"xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g,f=>{var g=Math.random()*16|0;return(f===
+"x"?g:g&3|8).toString(16)})}();c.send=a=>{if(l===1)a instanceof Blob?a.arrayBuffer().then(f=>{k(f)}):k(a);else if(l===0)if(typeof a==="string")q.push(a);else if(a instanceof ArrayBuffer||ArrayBuffer.isView(a))q.push(h(a));else throw Error("Sending Blob is not supported before the connection is open.");else console.debug("WebSocket send called in CLOSING or CLOSED state; ignored.")};c.close=(a=1E3,f="")=>{if(l!==2&&l!==3){l=2;a={type:"close",code:a,reason:f,wasClean:a===1E3};var g;(g=t)==null||g.postMessage(a)}};
+Promise.resolve().then(()=>p(d));return c}A(B,EventTarget);var C=document.currentScript,D=C==null?void 0:C.getAttribute("ws-interception-config");if(!D)throw Error("WebSocket Interceptor: Missing ws-interception-config attribute in the script tag.");var E=JSON.parse(D);if(!E.parentOrigin||typeof E.parentOrigin!=="string")throw Error("WebSocket Interceptor: Invalid parentOrigin in ws-interception-config");
+(function(b){var d=Object.getOwnPropertyDescriptor(window,"WebSocket");if(!d||d.writable||d.configurable)d=Object.assign(function(e,h){try{let k=(new URL(e)).hostname;if(b.proxiedDomains.some(m=>k===m||k.endsWith(`.${m}`)))return new B(e,h,b.parentOrigin)}catch(k){throw window.parent.postMessage({type:"websocket_blocked",url:e,reason:"blocked_invalid_url"},b.parentOrigin),new DOMException(`WebSocket connection to '${e}' is not allowed in Canvas.`,"SecurityError");}window.parent.postMessage({type:"websocket_blocked",
+url:e,reason:"blocked_domain_not_allowlisted"},b.parentOrigin);throw new DOMException(`WebSocket connection to '${e}' is not allowed in Canvas.`,"SecurityError");},{CONNECTING:0,OPEN:1,CLOSING:2,CLOSED:3}),Object.defineProperty(window,"WebSocket",{value:d,writable:!1,configurable:!1})})({proxiedDomains:E.proxiedDomains||[],parentOrigin:E.parentOrigin});}).call(this);
+</script><script data-bard-client-injected="true">((function(modelInformation) {
+  const originalFetch = window.fetch;
+  // TODO: b/421908508 - Move these out of the script and match all generative AI model calls.
+  let googleLlmBaseApiUrls = [
+    'https://generativelanguage.googleapis.com/v1beta/models/' + modelInformation.textModelName + ':streamGenerateContent',
+    'https://generativelanguage.googleapis.com/v1beta/models/' + modelInformation.textModelName + ':generateContent',
+    'https://generativelanguage.googleapis.com/v1beta/models/' + modelInformation.imageModelName + ':predict',
+    'https://generativelanguage.googleapis.com/v1beta/models/' + modelInformation.imageModelName + ':predictLongRunning',
+    'https://generativelanguage.googleapis.com/v1beta/models/' + modelInformation.imageEditModelName + ':generateContent',
+    'https://generativelanguage.googleapis.com/v1beta/models/' + modelInformation.imageTransformModelName + ':generateContent',
+    'https://generativelanguage.googleapis.com/v1beta/models/' + modelInformation.videoModelName + ':predict',
+    'https://generativelanguage.googleapis.com/v1beta/models/' + modelInformation.videoModelName + ':predictLongRunning',
+    'https://generativelanguage.googleapis.com/v1beta/models/' + modelInformation.ttsModelName + ':generateContent',
+  ];
+  modelInformation.deprecatedTextModelNames.forEach((modelName) => {
+    googleLlmBaseApiUrls.push(
+      'https://generativelanguage.googleapis.com/v1beta/models/' + modelName + ':streamGenerateContent',
+      'https://generativelanguage.googleapis.com/v1beta/models/' + modelName + ':generateContent',
+    );
+  });
+  modelInformation.deprecatedImageModelNames.forEach((modelName) => {
+    googleLlmBaseApiUrls.push(
+      'https://generativelanguage.googleapis.com/v1beta/models/' + modelName + ':predict',
+      'https://generativelanguage.googleapis.com/v1beta/models/' + modelName + ':predictLongRunning',
+      'https://generativelanguage.googleapis.com/v1beta/models/' + modelName + ':generateContent',
+      'https://generativelanguage.googleapis.com/v1beta/models/' + modelName + ':streamGenerateContent',
+    );
+  });
+  modelInformation.deprecatedGenerateImageModelNames.forEach((modelName) => {
+    googleLlmBaseApiUrls.push(
+      'https://generativelanguage.googleapis.com/v1beta/models/' + modelName + ':generateContent',
+      'https://generativelanguage.googleapis.com/v1beta/models/' + modelName + ':streamGenerateContent',
+    );
+  });
+  modelInformation.deprecatedImageTransformModelNames.forEach((modelName) => {
+    googleLlmBaseApiUrls.push(
+      'https://generativelanguage.googleapis.com/v1beta/models/' + modelName + ':generateContent',
+      'https://generativelanguage.googleapis.com/v1beta/models/' + modelName + ':streamGenerateContent',
+    );
+  });
+
+  const pendingFetchResolvers = {};
+  let nextPromiseId = 0;
+
+  function handleStringInput(input, optionsArgument) {
+    const actualUrl = input;
+    const fetchCallArgs = [actualUrl, optionsArgument];
+    const effectiveOptions = optionsArgument || {};
+    const bodyForApiKeyCheck = effectiveOptions.body;
+    const bodyForPostMessage = effectiveOptions.body;
+    return { actualUrl, fetchCallArgs, effectiveOptions, bodyForApiKeyCheck, bodyForPostMessage };
+  }
+
+  function handleRequestInput(input, optionsArgument) {
+    const actualUrl = input.url;
+    const fetchCallArgs = [input, optionsArgument];
+    const effectiveOptions = { method: input.method, headers: new Headers(input.headers) };
+    let bodyForApiKeyCheck;
+    let bodyForPostMessage;
+
+    if (optionsArgument) {
+      if (optionsArgument.method) effectiveOptions.method = optionsArgument.method;
+      if (optionsArgument.headers) effectiveOptions.headers = new Headers(optionsArgument.headers);
+      if ('body' in optionsArgument) {
+        bodyForApiKeyCheck = optionsArgument.body;
+        bodyForPostMessage = optionsArgument.body;
+      } else {
+        bodyForApiKeyCheck = undefined;
+        bodyForPostMessage = input.body;
+      }
+    } else {
+      bodyForApiKeyCheck = undefined;
+      bodyForPostMessage = input.body;
+    }
+    return { actualUrl, fetchCallArgs, effectiveOptions, bodyForApiKeyCheck, bodyForPostMessage };
+  }
+
+  window.fetch = function(input, optionsArgument) {
+    let actualUrl;
+    let fetchCallArgs;
+    let effectiveOptions = {};
+    let bodyForApiKeyCheck;
+    let bodyForPostMessage;
+
+    if (typeof input === 'string') {
+      ({actualUrl, fetchCallArgs, effectiveOptions, bodyForApiKeyCheck, bodyForPostMessage} = handleStringInput(input, optionsArgument));
+    } else if (input instanceof Request) {
+      ({actualUrl, fetchCallArgs, effectiveOptions, bodyForApiKeyCheck, bodyForPostMessage} = handleRequestInput(input, optionsArgument));
+    } else {
+      return originalFetch.apply(window, [input, optionsArgument]);
+    }
+
+    effectiveOptions.method = effectiveOptions.method || 'GET';
+    if (!effectiveOptions.headers) {
+      effectiveOptions.headers = new Headers();
+    }
+
+
+    if (typeof actualUrl === 'string' && googleLlmBaseApiUrls.some((url) => actualUrl.startsWith(url))) {
+      let apiKeyIsNull = true;
+
+      const regex = new RegExp("models/([^:]+)");
+      const modelNameMatch = actualUrl.match(regex);
+      const modelName = modelNameMatch ? modelNameMatch[1] : 'unspecified';
+
+
+      try {
+        const urlObject = new URL(actualUrl);  // Use URL object for robust parsing
+        const apiKeyParam = urlObject.searchParams.get('key');
+        if (apiKeyParam) {
+          apiKeyIsNull = false;
+        }
+      } catch (e) {
+        // Continue checks even if URL parsing fails
+      }
+
+      if (apiKeyIsNull && effectiveOptions.headers) {
+        const h = new Headers(effectiveOptions.headers);
+        const apiKeyHeaderValue = h.get('X-API-Key') || h.get('x-api-key');
+        if (apiKeyHeaderValue) {
+          apiKeyIsNull = false;
+          return originalFetch.apply(window, fetchCallArgs);
+        }
+      }
+
+      if (apiKeyIsNull && effectiveOptions.method && ['POST', 'PUT', 'PATCH'].includes(effectiveOptions.method.toUpperCase()) && typeof bodyForApiKeyCheck === 'string') {
+        try {
+          const bodyData = JSON.parse(bodyForApiKeyCheck);
+          if (bodyData && bodyData.apiKey) {
+            apiKeyIsNull = false;
+            return originalFetch.apply(window, fetchCallArgs);
+          }
+        } catch (e) {
+          // Ignore JSON parsing errors
+        }
+      }
+
+      if(apiKeyIsNull) {
+        const promiseId = nextPromiseId++;
+        const promise = new Promise((resolve) => {
+          pendingFetchResolvers[promiseId] = (resolvedResponse) => {
+            delete pendingFetchResolvers[promiseId];
+            resolve(resolvedResponse);
+          };
+        });
+
+        let serializedBodyForPostMessage;
+        if (typeof bodyForPostMessage === 'string' || bodyForPostMessage == null) {
+            serializedBodyForPostMessage = bodyForPostMessage;
+        } else if (bodyForPostMessage instanceof ReadableStream) {
+            serializedBodyForPostMessage = null;
+        } else {
+            try {
+                serializedBodyForPostMessage = JSON.stringify(bodyForPostMessage);
+            } catch (e) {
+                serializedBodyForPostMessage = null;
+            }
+        }
+
+        const messageOptions = {
+            method: effectiveOptions.method,
+            headers: Object.fromEntries(new Headers(effectiveOptions.headers).entries()),
+            body: serializedBodyForPostMessage
+        };
+
+        window.parent.postMessage({
+          type: 'requestFetch',
+          url: actualUrl,
+          modelName: modelName,
+          options: messageOptions,
+          promiseId: promiseId,
+        }, '*');
+
+        return promise;
+      }
+      return originalFetch.apply(window, fetchCallArgs);
+    }
+    return originalFetch.apply(window, fetchCallArgs);
+  };
+
+  window.addEventListener('message', function(event) {
+    if (event.data && event.data.type === 'resolveFetch') {
+      const { promiseId, response } = event.data;
+      if (pendingFetchResolvers[promiseId]) {
+        try {
+          const reconstructedResponse = new Response(response.body, {
+            status: response.status,
+            statusText: response.statusText,
+            headers: new Headers(response.headers),
+          });
+          pendingFetchResolvers[promiseId](reconstructedResponse);
+        } catch (error) {
+          pendingFetchResolvers[promiseId](new Response(null, { status: 500, statusText: "Interceptor Response Reconstruction Error" }));
+        }
+      }
+    }
+  });
+
+}))({"textModelName":"gemini-3-flash-preview","imageModelName":"imagen-4.0-generate-001","imageEditModelName":"gemini-3.1-flash-image","imageTransformModelName":"gemini-3-pro-image","videoModelName":"veo-2.0-generate-001","ttsModelName":"gemini-2.5-flash-preview-tts","deprecatedTextModelNames":["gemini-2.0-flash","gemini-2.5-flash","gemini-2.5-flash-preview-04-17","gemini-2.5-flash-preview-05-20","gemini-2.5-flash-preview-09-2025"],"deprecatedImageModelNames":["imagen-3.0-generate-001","imagen-3.0-generate-002"],"deprecatedGenerateImageModelNames":["gemini-2.5-flash-image-preview","gemini-2.5-flash-image","gemini-3.1-flash-image-preview"],"deprecatedImageTransformModelNames":["gemini-3-pro-image-preview-11-2025"]})</script><script data-bard-client-injected="true">(function() {
+  function normalizeSlug(str) {
+    try {
+      return str
+        .trim()
+        .toLowerCase()
+        .replace(/[^p{L}p{N}s_-]/gu, '')
+        .replace(/s+/g, '-');
+    } catch (e) {
+      return str
+        .trim()
+        .toLowerCase()
+        .replace(/[^a-z0-9s_-]/g, '')
+        .replace(/s+/g, '-');
+    }
+  }
+
+  function findTargetElement(hash) {
+    if (!hash || hash === '#') {
+      return null;
+    }
+    const rawId = hash.startsWith('#') ? hash.slice(1) : hash;
+    let decodedId = rawId;
+    try {
+      decodedId = decodeURIComponent(rawId);
+    } catch (e) {
+      // Ignore URI malformed errors.
+    }
+
+    // 1. Direct ID match (raw and decoded).
+    let target = document.getElementById(rawId) || document.getElementById(decodedId);
+    if (target) {
+      return target;
+    }
+
+    // 2. Name attribute match (<a name="...">).
+    try {
+      if (typeof CSS !== 'undefined' && CSS.escape) {
+        target =
+          document.querySelector('[name="' + CSS.escape(rawId) + '"]') ||
+          document.querySelector('[name="' + CSS.escape(decodedId) + '"]');
+      } else {
+        const namedElements = document.getElementsByName(rawId);
+        if (namedElements && namedElements.length > 0) {
+          return namedElements[0];
+        }
+      }
+    } catch (e) {
+      // Ignore querySelector syntax errors.
+    }
+    if (target) {
+      return target;
+    }
+
+    // 3. Match heading text by slug (for Markdown TOCs where headings lack explicit IDs).
+    const targetSlug = normalizeSlug(decodedId);
+    if (targetSlug) {
+      for (const heading of document.querySelectorAll('h1, h2, h3, h4, h5, h6')) {
+        if (normalizeSlug(heading.textContent || '') === targetSlug) {
+          return heading;
+        }
+      }
+    }
+
+    return null;
+  }
+
+  document.addEventListener('click', function(event) {
+    const target = event.target;
+    const anchor = target && typeof target.closest === 'function' ? target.closest('a') : null;
+    if (!anchor) {
+      return;
+    }
+
+    const href = anchor.getAttribute('href');
+    if (
+      !href ||
+      href.trim().toLowerCase().startsWith('javascript:') ||
+      anchor.hasAttribute('download')
+    ) {
+      return;
+    }
+
+    // Check if the link is an in-page hash / anchor link.
+    if (href.startsWith('#')) {
+      event.preventDefault();
+      const targetElement = findTargetElement(href);
+      if (targetElement) {
+        targetElement.scrollIntoView({behavior: 'smooth', block: 'start'});
+      }
+      return;
+    }
+
+    // Check if the URL has the same origin/pathname but with a hash.
+    try {
+      const url = new URL(anchor.href, window.location.href);
+      if (
+        url.hash &&
+        url.origin === window.location.origin &&
+        url.pathname === window.location.pathname
+      ) {
+        event.preventDefault();
+        const targetElement = findTargetElement(url.hash);
+        if (targetElement) {
+          targetElement.scrollIntoView({behavior: 'smooth', block: 'start'});
+        }
+        return;
+      }
+    } catch (e) {
+      // Fall through if URL parsing fails.
+    }
+
+    // For all external or full navigation links, prevent iframe-level navigation
+    // (which breaks in AGSA WebView or sandboxed iframes) and ensure they open
+    // safely in a new tab/window.
+    if (anchor.target !== '_blank') {
+      event.preventDefault();
+      window.open(anchor.href, '_blank', 'noopener,noreferrer');
+    }
+  }, {capture: true});
+})();</script><script data-bard-client-injected="true">(function(){'use strict';function a(){window.parent.postMessage({type:"interaction"},"*")}window.addEventListener("click",a,{capture:!0,passive:!0});window.addEventListener("touchstart",a,{capture:!0,passive:!0});window.addEventListener("keydown",a,{capture:!0,passive:!0});}).call(this);
+</script><script data-bard-client-injected="true">(function() {
+  const originalConsoleLog = console.log;
+  const originalConsoleError = console.error;
+
+    /**
+   * Normalizes an error event or a promise rejection reason into a structured error object.
+   * @param {*} errorEventOrReason The error object or reason.
+   * @return {object} Structured error data { message, name, stack }.
+   */
+  function getErrorObject(errorEventOrReason) {
+    if (errorEventOrReason instanceof Error) {
+      return {
+        message: errorEventOrReason.message,
+        name: errorEventOrReason.name,
+        stack: errorEventOrReason.stack,
+      };
+    }
+    // Fallback for non-Error objects.
+    try {
+      return {
+        message: JSON.stringify(errorEventOrReason),
+        name: 'UnknownErrorType',
+        stack: null,
+      };
+    } catch (e) {
+      return {
+        message: String(errorEventOrReason),
+        name: 'UnknownErrorTypeNonStringifiable',
+        stack: null,
+      };
+    }
+  }
+
+  /**
+   * Converts an array of arguments (from log/error) into a single string.
+   * Handles Error objects specially to include their message and stack.
+   * @param {Array<*>} args - Arguments passed to console methods.
+   * @return {string} A string representation of the arguments.
+   */
+  function stringifyArgs(args) {
+    return args
+      .map((arg) => {
+        if (arg instanceof Error) {
+          const {message, stack} = arg;
+          return `Error: ${message}${stack ? ('\nStack: ' + stack) : ''}`;
+        }
+        if (typeof arg === 'object' && arg !== null) {
+          try {
+            return JSON.stringify(arg);
+          } catch (error) {
+            return '[Circular Object]';
+          }
+        } else {
+          return String(arg);
+        }
+      })
+      .join(' ');
+  }
+
+  console.log = function(...args) {
+    const logString = stringifyArgs(args);
+    window.parent.postMessage({ type: 'log', message: logString }, '*');
+    originalConsoleLog.apply(console, args);
+  };
+
+  console.error = function(...args) {
+    let errorData;
+    if (args.length > 0 && args[0] instanceof Error) {
+      const err = args[0];
+      // If the first arg is an Error, capture its details.
+      errorData = {
+        type: 'error',
+        source: 'CONSOLE_ERROR',
+        ...getErrorObject(err),
+        rawArgsString: stringifyArgs(args.slice(1)),
+        timestamp: new Date().toISOString(),
+      };
+    } else {
+      // If not an Error object, treat all args as a general error message.
+      errorData = {
+        type: 'error',
+        source: 'CONSOLE_ERROR',
+        message: stringifyArgs(args),
+        name: 'ConsoleLoggedError',
+        stack: null,
+        timestamp: new Date().toISOString(),
+      };
+    }
+    window.parent.postMessage(errorData, '*');
+    originalConsoleError.apply(console, args);
+  };
+
+  // Listen for global unhandled synchronous errors.
+  window.addEventListener('error', function(event) {
+    const errorDetails = event.error ? getErrorObject(event.error) : {
+      message: event.message,
+      name: 'GlobalError',
+      stack: null,
+      filename: event.filename,
+      lineno: event.lineno,
+      colno: event.colno,
+    };
+
+    window.parent.postMessage({
+      type: 'error',
+      source: 'global',
+      ...errorDetails,
+      message: errorDetails.message || event.message,
+      timestamp: new Date().toISOString(),
+    }, '*');
+  });
+
+  // Listen for unhandled promise rejections (asynchronous errors).
+  window.addEventListener('unhandledrejection', function(event) {
+    const errorDetails = getErrorObject(event.reason);
+
+    window.parent.postMessage({
+      type: 'error',
+      source: 'unhandledrejection',
+      ...errorDetails,
+      message: errorDetails.message || 'Unhandled Promise Rejection',
+      timestamp: new Date().toISOString(),
+    }, '*');
+  });
+
+})();</script>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title>OmniView OSINT — All-US Cities &amp; Cancun Unified Spatial Intelligence</title>
+  <script src="https://cdn.tailwindcss.com/3.4.17"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin="">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=JetBrains+Mono:wght@400;500;600;700&amp;display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --hud-cyan: #22d3ee;
+      --hud-amber: #f59e0b;
+      --hud-emerald: #10b981;
+      --hud-purple: #a855f7;
+      --panel-bg: rgba(9, 14, 23, 0.88);
+      --panel-border: rgba(34, 211, 238, 0.28);
+    }
+    * { box-sizing: border-box; user-select: none; }
+    body {
+      margin: 0; padding: 0;
+      background: #04070d;
+      color: #e2e8f0;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+      overflow: hidden;
+      height: 100dvh; width: 100vw;
+      touch-action: none;
+      -webkit-touch-callout: none;
+      -webkit-tap-highlight-color: transparent;
+    }
+    #gev-canvas { touch-action: none; }
+    @media (pointer: coarse), (max-width: 1180px) {
+      button, select, .contact-row, .cam-row { min-height: 34px; }
+      input[type="range"] { height: 26px; }
+    }
+    .font-mono-tech { font-family: 'JetBrains Mono', monospace; }
+    ::-webkit-scrollbar { width: 5px; height: 5px; }
+    ::-webkit-scrollbar-track { background: rgba(15, 23, 42, 0.6); }
+    ::-webkit-scrollbar-thumb { background: rgba(34, 211, 238, 0.35); border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: rgba(34, 211, 238, 0.65); }
+    .gev-panel {
+      background: var(--panel-bg);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      border: 1px solid var(--panel-border);
+      box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.75), inset 0 1px 0 0 rgba(255, 255, 255, 0.06);
+    }
+    .gev-divider { border-bottom: 1px solid rgba(34, 211, 238, 0.24); }
+    .optics-crt { filter: contrast(1.18) brightness(1.05) saturate(0.85); }
+    .optics-nvg { filter: sepia(100%) hue-rotate(72deg) saturate(320%) brightness(0.95) contrast(1.32); }
+    .optics-flir { filter: invert(100%) sepia(85%) saturate(450%) hue-rotate(175deg) contrast(1.38); }
+    .optics-cyber { filter: contrast(1.25) saturate(1.35) hue-rotate(-12deg); }
+    .optics-noir { filter: grayscale(100%) contrast(1.48) brightness(0.92); }
+    .optics-snow { filter: brightness(1.22) contrast(1.15) saturate(0.45) hue-rotate(15deg); }
+    .scanline-overlay {
+      background: linear-gradient(
+        to bottom,
+        rgba(255,255,255,0),
+        rgba(255,255,255,0) 50%,
+        rgba(0, 0, 0, 0.32) 50%,
+        rgba(0, 0, 0, 0.32)
+      );
+      background-size: 100% 4px;
+    }
+    @keyframes pulseGlow {
+      0%, 100% { opacity: 0.9; transform: scale(1); }
+      50% { opacity: 0.45; transform: scale(1.08); }
+    }
+    .pulse-indicator { animation: pulseGlow 2s infinite ease-in-out; }
+    .gev-drag-handle { cursor: move; touch-action: none; }
+    .gev-floating-active {
+      box-shadow: 0 18px 42px -6px rgba(0, 0, 0, 0.88), 0 0 0 1px rgba(34, 211, 238, 0.65) !important;
+    }
+    /* Smooth accordion animation */
+    .accordion-content {
+      transition: max-height 0.25s ease-out, opacity 0.2s ease-out;
+      overflow: hidden;
+    }
+    .accordion-collapsed {
+      max-height: 0 !important;
+      opacity: 0;
+      padding-top: 0 !important;
+      padding-bottom: 0 !important;
+    }
+  </style>
+<style>*, ::before, ::after{--tw-border-spacing-x:0;--tw-border-spacing-y:0;--tw-translate-x:0;--tw-translate-y:0;--tw-rotate:0;--tw-skew-x:0;--tw-skew-y:0;--tw-scale-x:1;--tw-scale-y:1;--tw-pan-x: ;--tw-pan-y: ;--tw-pinch-zoom: ;--tw-scroll-snap-strictness:proximity;--tw-gradient-from-position: ;--tw-gradient-via-position: ;--tw-gradient-to-position: ;--tw-ordinal: ;--tw-slashed-zero: ;--tw-numeric-figure: ;--tw-numeric-spacing: ;--tw-numeric-fraction: ;--tw-ring-inset: ;--tw-ring-offset-width:0px;--tw-ring-offset-color:#fff;--tw-ring-color:rgb(59 130 246 / 0.5);--tw-ring-offset-shadow:0 0 #0000;--tw-ring-shadow:0 0 #0000;--tw-shadow:0 0 #0000;--tw-shadow-colored:0 0 #0000;--tw-blur: ;--tw-brightness: ;--tw-contrast: ;--tw-grayscale: ;--tw-hue-rotate: ;--tw-invert: ;--tw-saturate: ;--tw-sepia: ;--tw-drop-shadow: ;--tw-backdrop-blur: ;--tw-backdrop-brightness: ;--tw-backdrop-contrast: ;--tw-backdrop-grayscale: ;--tw-backdrop-hue-rotate: ;--tw-backdrop-invert: ;--tw-backdrop-opacity: ;--tw-backdrop-saturate: ;--tw-backdrop-sepia: ;--tw-contain-size: ;--tw-contain-layout: ;--tw-contain-paint: ;--tw-contain-style: }::backdrop{--tw-border-spacing-x:0;--tw-border-spacing-y:0;--tw-translate-x:0;--tw-translate-y:0;--tw-rotate:0;--tw-skew-x:0;--tw-skew-y:0;--tw-scale-x:1;--tw-scale-y:1;--tw-pan-x: ;--tw-pan-y: ;--tw-pinch-zoom: ;--tw-scroll-snap-strictness:proximity;--tw-gradient-from-position: ;--tw-gradient-via-position: ;--tw-gradient-to-position: ;--tw-ordinal: ;--tw-slashed-zero: ;--tw-numeric-figure: ;--tw-numeric-spacing: ;--tw-numeric-fraction: ;--tw-ring-inset: ;--tw-ring-offset-width:0px;--tw-ring-offset-color:#fff;--tw-ring-color:rgb(59 130 246 / 0.5);--tw-ring-offset-shadow:0 0 #0000;--tw-ring-shadow:0 0 #0000;--tw-shadow:0 0 #0000;--tw-shadow-colored:0 0 #0000;--tw-blur: ;--tw-brightness: ;--tw-contrast: ;--tw-grayscale: ;--tw-hue-rotate: ;--tw-invert: ;--tw-saturate: ;--tw-sepia: ;--tw-drop-shadow: ;--tw-backdrop-blur: ;--tw-backdrop-brightness: ;--tw-backdrop-contrast: ;--tw-backdrop-grayscale: ;--tw-backdrop-hue-rotate: ;--tw-backdrop-invert: ;--tw-backdrop-opacity: ;--tw-backdrop-saturate: ;--tw-backdrop-sepia: ;--tw-contain-size: ;--tw-contain-layout: ;--tw-contain-paint: ;--tw-contain-style: }/* ! tailwindcss v3.4.17 | MIT License | https://tailwindcss.com */*,::after,::before{box-sizing:border-box;border-width:0;border-style:solid;border-color:#e5e7eb}::after,::before{--tw-content:''}:host,html{line-height:1.5;-webkit-text-size-adjust:100%;-moz-tab-size:4;tab-size:4;font-family:ui-sans-serif, system-ui, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";font-feature-settings:normal;font-variation-settings:normal;-webkit-tap-highlight-color:transparent}body{margin:0;line-height:inherit}hr{height:0;color:inherit;border-top-width:1px}abbr:where([title]){-webkit-text-decoration:underline dotted;text-decoration:underline dotted}h1,h2,h3,h4,h5,h6{font-size:inherit;font-weight:inherit}a{color:inherit;text-decoration:inherit}b,strong{font-weight:bolder}code,kbd,pre,samp{font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;font-feature-settings:normal;font-variation-settings:normal;font-size:1em}small{font-size:80%}sub,sup{font-size:75%;line-height:0;position:relative;vertical-align:baseline}sub{bottom:-.25em}sup{top:-.5em}table{text-indent:0;border-color:inherit;border-collapse:collapse}button,input,optgroup,select,textarea{font-family:inherit;font-feature-settings:inherit;font-variation-settings:inherit;font-size:100%;font-weight:inherit;line-height:inherit;letter-spacing:inherit;color:inherit;margin:0;padding:0}button,select{text-transform:none}button,input:where([type=button]),input:where([type=reset]),input:where([type=submit]){-webkit-appearance:button;background-color:transparent;background-image:none}:-moz-focusring{outline:auto}:-moz-ui-invalid{box-shadow:none}progress{vertical-align:baseline}::-webkit-inner-spin-button,::-webkit-outer-spin-button{height:auto}[type=search]{-webkit-appearance:textfield;outline-offset:-2px}::-webkit-search-decoration{-webkit-appearance:none}::-webkit-file-upload-button{-webkit-appearance:button;font:inherit}summary{display:list-item}blockquote,dd,dl,figure,h1,h2,h3,h4,h5,h6,hr,p,pre{margin:0}fieldset{margin:0;padding:0}legend{padding:0}menu,ol,ul{list-style:none;margin:0;padding:0}dialog{padding:0}textarea{resize:vertical}input::placeholder,textarea::placeholder{opacity:1;color:#9ca3af}[role=button],button{cursor:pointer}:disabled{cursor:default}audio,canvas,embed,iframe,img,object,svg,video{display:block;vertical-align:middle}img,video{max-width:100%;height:auto}[hidden]:where(:not([hidden=until-found])){display:none}.pointer-events-none{pointer-events:none}.pointer-events-auto{pointer-events:auto}.fixed{position:fixed}.absolute{position:absolute}.relative{position:relative}.inset-0{inset:0px}.bottom-1\.5{bottom:0.375rem}.bottom-2{bottom:0.5rem}.bottom-24{bottom:6rem}.bottom-28{bottom:7rem}.left-1\/2{left:50%}.left-2{left:0.5rem}.left-2\.5{left:0.625rem}.right-2{right:0.5rem}.right-2\.5{right:0.625rem}.right-3{right:0.75rem}.top-1\.5{top:0.375rem}.top-16{top:4rem}.top-2\.5{top:0.625rem}.top-20{top:5rem}.top-3{top:0.75rem}.z-10{z-index:10}.z-20{z-index:20}.z-30{z-index:30}.z-50{z-index:50}.ml-1{margin-left:0.25rem}.ml-2{margin-left:0.5rem}.mt-0\.5{margin-top:0.125rem}.block{display:block}.flex{display:flex}.grid{display:grid}.hidden{display:none}.h-36{height:9rem}.h-6{height:1.5rem}.h-\[520px\]{height:520px}.h-full{height:100%}.h-screen{height:100vh}.max-h-48{max-height:12rem}.max-h-\[75vh\]{max-height:75vh}.max-h-full{max-height:100%}.w-40{width:10rem}.w-6{width:1.5rem}.w-72{width:18rem}.w-80{width:20rem}.w-\[520px\]{width:520px}.w-full{width:100%}.w-screen{width:100vw}.min-w-0{min-width:0px}.max-w-\[210px\]{max-width:210px}.max-w-\[240px\]{max-width:240px}.max-w-\[85vw\]{max-width:85vw}.flex-1{flex:1 1 0%}.shrink-0{flex-shrink:0}.-translate-x-1\/2{--tw-translate-x:-50%;transform:translate(var(--tw-translate-x), var(--tw-translate-y)) rotate(var(--tw-rotate)) skewX(var(--tw-skew-x)) skewY(var(--tw-skew-y)) scaleX(var(--tw-scale-x)) scaleY(var(--tw-scale-y))}.cursor-grab{cursor:grab}.cursor-pointer{cursor:pointer}.select-none{-webkit-user-select:none;user-select:none}.grid-cols-2{grid-template-columns:repeat(2, minmax(0, 1fr))}.flex-col{flex-direction:column}.flex-wrap{flex-wrap:wrap}.items-center{align-items:center}.justify-center{justify-content:center}.justify-between{justify-content:space-between}.gap-1{gap:0.25rem}.gap-1\.5{gap:0.375rem}.gap-2{gap:0.5rem}.gap-2\.5{gap:0.625rem}.gap-3{gap:0.75rem}.gap-4{gap:1rem}.space-y-1 > :not([hidden]) ~ :not([hidden]){--tw-space-y-reverse:0;margin-top:calc(0.25rem * calc(1 - var(--tw-space-y-reverse)));margin-bottom:calc(0.25rem * var(--tw-space-y-reverse))}.space-y-1\.5 > :not([hidden]) ~ :not([hidden]){--tw-space-y-reverse:0;margin-top:calc(0.375rem * calc(1 - var(--tw-space-y-reverse)));margin-bottom:calc(0.375rem * var(--tw-space-y-reverse))}.space-y-2 > :not([hidden]) ~ :not([hidden]){--tw-space-y-reverse:0;margin-top:calc(0.5rem * calc(1 - var(--tw-space-y-reverse)));margin-bottom:calc(0.5rem * var(--tw-space-y-reverse))}.space-y-2\.5 > :not([hidden]) ~ :not([hidden]){--tw-space-y-reverse:0;margin-top:calc(0.625rem * calc(1 - var(--tw-space-y-reverse)));margin-bottom:calc(0.625rem * var(--tw-space-y-reverse))}.overflow-hidden{overflow:hidden}.overflow-y-auto{overflow-y:auto}.truncate{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.rounded{border-radius:0.25rem}.rounded-full{border-radius:9999px}.rounded-lg{border-radius:0.5rem}.border{border-width:1px}.border-b{border-bottom-width:1px}.border-b-2{border-bottom-width:2px}.border-amber-400\/50{border-color:rgb(251 191 36 / 0.5)}.border-cyan-300{--tw-border-opacity:1;border-color:rgb(103 232 249 / var(--tw-border-opacity, 1))}.border-cyan-400{--tw-border-opacity:1;border-color:rgb(34 211 238 / var(--tw-border-opacity, 1))}.border-cyan-400\/40{border-color:rgb(34 211 238 / 0.4)}.border-cyan-400\/50{border-color:rgb(34 211 238 / 0.5)}.border-cyan-500\/25{border-color:rgb(6 182 212 / 0.25)}.border-cyan-500\/30{border-color:rgb(6 182 212 / 0.3)}.border-cyan-500\/40{border-color:rgb(6 182 212 / 0.4)}.border-emerald-400\/40{border-color:rgb(52 211 153 / 0.4)}.border-emerald-400\/50{border-color:rgb(52 211 153 / 0.5)}.border-emerald-400\/60{border-color:rgb(52 211 153 / 0.6)}.border-rose-300\/60{border-color:rgb(253 164 175 / 0.6)}.border-slate-600{--tw-border-opacity:1;border-color:rgb(71 85 105 / var(--tw-border-opacity, 1))}.border-slate-700{--tw-border-opacity:1;border-color:rgb(51 65 85 / var(--tw-border-opacity, 1))}.border-slate-800{--tw-border-opacity:1;border-color:rgb(30 41 59 / var(--tw-border-opacity, 1))}.bg-\[\#04070d\]{--tw-bg-opacity:1;background-color:rgb(4 7 13 / var(--tw-bg-opacity, 1))}.bg-amber-500\/20{background-color:rgb(245 158 11 / 0.2)}.bg-black\/70{background-color:rgb(0 0 0 / 0.7)}.bg-black\/75{background-color:rgb(0 0 0 / 0.75)}.bg-black\/85{background-color:rgb(0 0 0 / 0.85)}.bg-cyan-500\/10{background-color:rgb(6 182 212 / 0.1)}.bg-cyan-500\/20{background-color:rgb(6 182 212 / 0.2)}.bg-cyan-500\/25{background-color:rgb(6 182 212 / 0.25)}.bg-cyan-500\/30{background-color:rgb(6 182 212 / 0.3)}.bg-cyan-600\/30{background-color:rgb(8 145 178 / 0.3)}.bg-emerald-500\/20{background-color:rgb(16 185 129 / 0.2)}.bg-emerald-500\/25{background-color:rgb(16 185 129 / 0.25)}.bg-rose-600\/90{background-color:rgb(225 29 72 / 0.9)}.bg-slate-800{--tw-bg-opacity:1;background-color:rgb(30 41 59 / var(--tw-bg-opacity, 1))}.bg-slate-900{--tw-bg-opacity:1;background-color:rgb(15 23 42 / var(--tw-bg-opacity, 1))}.bg-slate-900\/60{background-color:rgb(15 23 42 / 0.6)}.bg-slate-900\/75{background-color:rgb(15 23 42 / 0.75)}.bg-slate-900\/90{background-color:rgb(15 23 42 / 0.9)}.bg-slate-950{--tw-bg-opacity:1;background-color:rgb(2 6 23 / var(--tw-bg-opacity, 1))}.bg-slate-950\/80{background-color:rgb(2 6 23 / 0.8)}.bg-slate-950\/90{background-color:rgb(2 6 23 / 0.9)}.p-2{padding:0.5rem}.p-2\.5{padding:0.625rem}.p-3{padding:0.75rem}.p-1\.5{padding:0.375rem}.px-1{padding-left:0.25rem;padding-right:0.25rem}.px-1\.5{padding-left:0.375rem;padding-right:0.375rem}.px-2{padding-left:0.5rem;padding-right:0.5rem}.px-2\.5{padding-left:0.625rem;padding-right:0.625rem}.px-3{padding-left:0.75rem;padding-right:0.75rem}.px-4{padding-left:1rem;padding-right:1rem}.px-5{padding-left:1.25rem;padding-right:1.25rem}.py-0\.5{padding-top:0.125rem;padding-bottom:0.125rem}.py-1{padding-top:0.25rem;padding-bottom:0.25rem}.py-1\.5{padding-top:0.375rem;padding-bottom:0.375rem}.py-2{padding-top:0.5rem;padding-bottom:0.5rem}.pr-0\.5{padding-right:0.125rem}.pr-1{padding-right:0.25rem}.text-center{text-align:center}.text-right{text-align:right}.text-\[10px\]{font-size:10px}.text-\[11px\]{font-size:11px}.text-\[9px\]{font-size:9px}.text-sm{font-size:0.875rem;line-height:1.25rem}.text-xs{font-size:0.75rem;line-height:1rem}.font-bold{font-weight:700}.font-semibold{font-weight:600}.font-medium{font-weight:500}.font-normal{font-weight:400}.uppercase{text-transform:uppercase}.leading-relaxed{line-height:1.625}.tracking-wider{letter-spacing:0.05em}.tracking-widest{letter-spacing:0.1em}.text-amber-300{--tw-text-opacity:1;color:rgb(252 211 77 / var(--tw-text-opacity, 1))}.text-cyan-200{--tw-text-opacity:1;color:rgb(165 243 252 / var(--tw-text-opacity, 1))}.text-cyan-300{--tw-text-opacity:1;color:rgb(103 232 249 / var(--tw-text-opacity, 1))}.text-cyan-400{--tw-text-opacity:1;color:rgb(34 211 238 / var(--tw-text-opacity, 1))}.text-emerald-200{--tw-text-opacity:1;color:rgb(167 243 208 / var(--tw-text-opacity, 1))}.text-emerald-300{--tw-text-opacity:1;color:rgb(110 231 183 / var(--tw-text-opacity, 1))}.text-emerald-400{--tw-text-opacity:1;color:rgb(52 211 153 / var(--tw-text-opacity, 1))}.text-purple-300{--tw-text-opacity:1;color:rgb(216 180 254 / var(--tw-text-opacity, 1))}.text-rose-300{--tw-text-opacity:1;color:rgb(253 164 175 / var(--tw-text-opacity, 1))}.text-slate-200{--tw-text-opacity:1;color:rgb(226 232 240 / var(--tw-text-opacity, 1))}.text-slate-300{--tw-text-opacity:1;color:rgb(203 213 225 / var(--tw-text-opacity, 1))}.text-slate-400{--tw-text-opacity:1;color:rgb(148 163 184 / var(--tw-text-opacity, 1))}.text-slate-600{--tw-text-opacity:1;color:rgb(71 85 105 / var(--tw-text-opacity, 1))}.text-white{--tw-text-opacity:1;color:rgb(255 255 255 / var(--tw-text-opacity, 1))}.placeholder-slate-500::placeholder{--tw-placeholder-opacity:1;color:rgb(100 116 139 / var(--tw-placeholder-opacity, 1))}.accent-cyan-400{accent-color:#22d3ee}.opacity-60{opacity:0.6}.shadow-2xl{--tw-shadow:0 25px 50px -12px rgb(0 0 0 / 0.25);--tw-shadow-colored:0 25px 50px -12px var(--tw-shadow-color);box-shadow:var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow)}.shadow-lg{--tw-shadow:0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);--tw-shadow-colored:0 10px 15px -3px var(--tw-shadow-color), 0 4px 6px -4px var(--tw-shadow-color);box-shadow:var(--tw-ring-offset-shadow, 0 0 #0000), var(--tw-ring-shadow, 0 0 #0000), var(--tw-shadow)}.transition{transition-property:color, background-color, border-color, fill, stroke, opacity, box-shadow, transform, filter, -webkit-text-decoration-color, -webkit-backdrop-filter;transition-property:color, background-color, border-color, text-decoration-color, fill, stroke, opacity, box-shadow, transform, filter, backdrop-filter;transition-property:color, background-color, border-color, text-decoration-color, fill, stroke, opacity, box-shadow, transform, filter, backdrop-filter, -webkit-text-decoration-color, -webkit-backdrop-filter;transition-timing-function:cubic-bezier(0.4, 0, 0.2, 1);transition-duration:150ms}.transition-transform{transition-property:transform;transition-timing-function:cubic-bezier(0.4, 0, 0.2, 1);transition-duration:150ms}.duration-200{transition-duration:200ms}.hover\:border-cyan-400:hover{--tw-border-opacity:1;border-color:rgb(34 211 238 / var(--tw-border-opacity, 1))}.hover\:bg-cyan-500\/30:hover{background-color:rgb(6 182 212 / 0.3)}.hover\:bg-cyan-500\/35:hover{background-color:rgb(6 182 212 / 0.35)}.hover\:bg-cyan-500\/50:hover{background-color:rgb(6 182 212 / 0.5)}.hover\:bg-cyan-600\/50:hover{background-color:rgb(8 145 178 / 0.5)}.hover\:bg-emerald-500\/40:hover{background-color:rgb(16 185 129 / 0.4)}.hover\:bg-rose-500:hover{--tw-bg-opacity:1;background-color:rgb(244 63 94 / var(--tw-bg-opacity, 1))}.hover\:bg-slate-700:hover{--tw-bg-opacity:1;background-color:rgb(51 65 85 / var(--tw-bg-opacity, 1))}.hover\:bg-slate-800:hover{--tw-bg-opacity:1;background-color:rgb(30 41 59 / var(--tw-bg-opacity, 1))}.hover\:bg-slate-800\/80:hover{background-color:rgb(30 41 59 / 0.8)}.hover\:text-white:hover{--tw-text-opacity:1;color:rgb(255 255 255 / var(--tw-text-opacity, 1))}.focus\:border-cyan-400:focus{--tw-border-opacity:1;border-color:rgb(34 211 238 / var(--tw-border-opacity, 1))}.focus\:outline-none:focus{outline:2px solid transparent;outline-offset:2px}.active\:cursor-grabbing:active{cursor:grabbing}@media (min-width: 640px){.sm\:top-14{top:3.5rem}.sm\:w-52{width:13rem}.sm\:w-80{width:20rem}.sm\:max-w-\[280px\]{max-width:280px}.sm\:max-w-none{max-width:none}}</style></head>
+<body class="relative w-screen h-screen overflow-hidden select-none bg-[#04070d]">
+
+  <!-- VIEWPORT & 3D CANVAS -->
+  <div id="viewport-wrapper" class="relative w-full h-full overflow-hidden">
+    <canvas id="gev-canvas" class="block w-full h-full cursor-grab active:cursor-grabbing" width="1896" height="1656"></canvas>
+    <div id="sensor-scanlines" class="pointer-events-none absolute inset-0 scanline-overlay hidden z-10"></div>
+    <div id="sensor-vignette" class="pointer-events-none absolute inset-0 z-10" style="background: radial-gradient(circle at center, transparent 58%, rgba(2, 6, 14, 0.72) 100%);"></div>
+
+    <!-- HUD RETICLE -->
+    <div id="orbital-hud-reticle" class="pointer-events-none absolute inset-0 z-10 flex items-center justify-center overflow-hidden">
+      <svg class="w-[520px] h-[520px] max-w-[85vw] max-h-[75vh] opacity-60" viewBox="0 0 600 600" fill="none">
+        <circle cx="300" cy="300" r="270" stroke="rgba(34,211,238,0.25)" stroke-width="1" stroke-dasharray="6,6"></circle>
+        <circle cx="300" cy="300" r="210" stroke="rgba(34,211,238,0.16)" stroke-width="1"></circle>
+        <circle cx="300" cy="300" r="95" stroke="rgba(34,211,238,0.22)" stroke-width="1" stroke-dasharray="3,4"></circle>
+        <path d="M90,130 L90,90 L130,90" stroke="rgba(34,211,238,0.75)" stroke-width="2"></path>
+        <path d="M510,130 L510,90 L470,90" stroke="rgba(34,211,238,0.75)" stroke-width="2"></path>
+        <path d="M90,470 L90,510 L130,510" stroke="rgba(34,211,238,0.75)" stroke-width="2"></path>
+        <path d="M510,470 L510,510 L470,510" stroke="rgba(34,211,238,0.75)" stroke-width="2"></path>
+        <line x1="282" y1="300" x2="294" y2="300" stroke="rgba(34,211,238,0.85)" stroke-width="1.5"></line>
+        <line x1="306" y1="300" x2="318" y2="300" stroke="rgba(34,211,238,0.85)" stroke-width="1.5"></line>
+        <line x1="300" y1="282" x2="300" y2="294" stroke="rgba(34,211,238,0.85)" stroke-width="1.5"></line>
+        <line x1="300" y1="306" x2="300" y2="318" stroke="rgba(34,211,238,0.85)" stroke-width="1.5"></line>
+        <text x="98" y="108" fill="rgba(34,211,238,0.8)" font-family="JetBrains Mono, monospace" font-size="10">ALL-US &amp; CANCUN SPATIAL LOCK</text>
+        <text id="reticle-target-coords" x="350" y="108" fill="rgba(16,185,129,0.85)" font-family="JetBrains Mono, monospace" font-size="10">36.1627°N 86.7816°W</text>
+        <text id="reticle-metro-label" x="98" y="502" fill="rgba(34,211,238,0.7)" font-family="JetBrains Mono, monospace" font-size="10">THEATER: NASHVILLE (TENNESSEE)</text>
+        <text x="405" y="502" fill="rgba(245,158,11,0.85)" font-family="JetBrains Mono, monospace" font-size="10">LIVE FUSION</text>
+      </svg>
+    </div>
+
+    <!-- COCKPIT OVERLAY -->
+    <div id="cockpit-overlay" class="pointer-events-none absolute inset-0 z-20 hidden">
+      <svg class="w-full h-full" viewBox="0 0 1600 900" preserveAspectRatio="none">
+        <path d="M0,0 L1600,0 L1600,110 L1320,65 L280,65 L0,110 Z" fill="rgba(4,9,18,0.78)" stroke="rgba(34,211,238,0.35)" stroke-width="1.5"></path>
+        <path d="M0,900 L1600,900 L1600,770 L1290,835 L310,835 L0,770 Z" fill="rgba(4,9,18,0.82)" stroke="rgba(34,211,238,0.35)" stroke-width="1.5"></path>
+        <g stroke="rgba(34,211,238,0.65)" stroke-width="1.5" fill="none">
+          <line x1="680" y1="450" x2="750" y2="450"></line><line x1="850" y1="450" x2="920" y2="450"></line>
+          <circle cx="800" cy="450" r="14"></circle><line x1="800" y1="436" x2="800" y2="420"></line>
+          <path d="M720,380 L760,380 M840,380 L880,380"></path><path d="M740,320 L765,320 M835,320 L860,320"></path>
+        </g>
+      </svg>
+      <div class="pointer-events-auto absolute top-20 left-1/2 -translate-x-1/2 flex items-center gap-4 px-4 py-1.5 rounded-full gev-panel text-xs font-mono-tech">
+        <span class="text-cyan-400 font-semibold" id="cockpit-callsign">AAL1204 · B737-800</span>
+        <span class="text-slate-400">|</span>
+        <span id="cockpit-alt">ALT: 4,200 FT</span>
+        <span class="text-slate-400">|</span>
+        <span id="cockpit-spd">GS: 195 KT</span>
+        <span class="text-slate-400">|</span>
+        <span id="cockpit-hdg">HDG: 204°</span>
+        <button id="btn-next-contact" class="ml-2 px-2 py-0.5 rounded bg-amber-500/20 border border-amber-400/50 text-amber-300 text-[10px]">NEXT CONTACT ▸</button>
+      </div>
+      <div class="pointer-events-auto absolute bottom-24 left-1/2 -translate-x-1/2">
+        <button id="btn-exit-cockpit" class="px-5 py-2 rounded-full bg-rose-600/90 hover:bg-rose-500 text-white font-mono-tech text-xs font-bold tracking-widest border border-rose-300/60 shadow-lg">
+          ✕ EXIT COCKPIT (ESC / C)
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- TOP BAR: BRANDING, SEARCH & UNIVERSAL US/CANCUN CITY SELECTOR -->
+  <header id="top-bar" class="fixed top-2.5 left-2.5 right-2.5 z-30 flex flex-wrap items-center justify-between gap-2 pointer-events-none">
+    <!-- Brand + Active City Indicator -->
+    <div class="pointer-events-auto flex items-center gap-2.5 gev-panel px-3 py-1.5 rounded-lg">
+      <svg class="w-6 h-6 text-cyan-400 shrink-0" viewBox="0 0 36 36" fill="none">
+        <ellipse cx="18" cy="18" rx="15" ry="9.5" stroke="currentColor" stroke-width="2.5" fill="rgba(15,23,42,0.75)"></ellipse>
+        <circle cx="18" cy="18" r="4.5" fill="#22d3ee"></circle>
+      </svg>
+      <div>
+        <div class="flex items-center gap-1.5">
+          <span class="font-mono-tech font-bold text-xs tracking-wider text-white">OMNIVIEW</span>
+          <span id="city-active-badge" class="text-[10px] font-mono-tech px-1.5 py-0.2 rounded bg-emerald-500/20 text-emerald-300 border border-emerald-400/40">📍 NASHVILLE, TENNESSEE</span>
+        </div>
+        <div id="ai-hud-status" class="font-mono-tech text-[10px] text-cyan-300 truncate max-w-[240px] sm:max-w-none">
+          ALL-US &amp; CANCUN OSINT FUSION · LIVE
+        </div>
+      </div>
+    </div>
+
+    <!-- Center: Universal City Jumper + Quick Presets -->
+    <div class="pointer-events-auto flex items-center gap-1.5 gev-panel px-2.5 py-1.5 rounded-lg font-mono-tech text-xs">
+      <span class="text-cyan-400 font-bold text-[11px] shrink-0">CITY:</span>
+      <select id="city-selector" aria-label="Select American City or Cancun" class="bg-slate-900 text-cyan-200 border border-cyan-500/40 rounded px-2 py-1 text-xs font-mono-tech focus:outline-none max-w-[210px] sm:max-w-[280px]">
+        <optgroup label="── Tennessee &amp; Mid-South ──">
+          <option value="nashville" selected="">📍 Nashville, TN (Music City · BNA)</option>
+          <option value="memphis">📍 Memphis, TN (FedEx SuperHub · MEM)</option>
+          <option value="knoxville">📍 Knoxville, TN (Oak Ridge / TVA · TYS)</option>
+          <option value="chattanooga">📍 Chattanooga, TN (Gigabit Fiber · CHA)</option>
+        </optgroup>
+        <optgroup label="── Mexico Caribbean Focus ──">
+          <option value="cancun">🌴 Cancun &amp; Quintana Roo (MMUN / Hotel Zone)</option>
+          <option value="tulum">🏖️ Tulum &amp; Riviera Maya (TQO / Sian Ka'an)</option>
+          <option value="merida">🏛️ Merida &amp; Puerto Progreso (MID · 185 mi W)</option>
+        </optgroup>
+        <optgroup label="── Major US Metropolitan Hubs ──">
+          <option value="new_york">🗽 New York City, NY (JFK/LGA/EWR · 8.3M)</option>
+          <option value="los_angeles">🌴 Los Angeles, CA (LAX · Port of LA · 3.8M)</option>
+          <option value="chicago">🏙️ Chicago, IL (ORD/MDW · Great Lakes · 2.6M)</option>
+          <option value="miami">🏖️ Miami &amp; S. Florida (MIA · Subsea Cable Hub)</option>
+          <option value="washington_dc">🏛️ Washington, D.C. (DCA/IAD · SFRA P-56)</option>
+          <option value="san_francisco">🌉 San Francisco &amp; Silicon Valley (SFO/OAK)</option>
+          <option value="seattle">🌲 Seattle, WA (SEA · Puget Sound · Tech Hub)</option>
+          <option value="austin">🤠 Austin, TX (AUS · Silicon Hills Tech)</option>
+          <option value="houston">🚀 Houston, TX (IAH · Ship Channel &amp; Energy)</option>
+          <option value="dallas">✈️ Dallas-Fort Worth, TX (DFW MegaHub)</option>
+          <option value="atlanta">🍑 Atlanta, GA (ATL Busiest Airport · 104M)</option>
+          <option value="boston">🎓 Boston, MA (BOS · BioTech &amp; Harbor)</option>
+          <option value="denver">🏔️ Denver, CO (DEN · Rocky Mountain Hub)</option>
+          <option value="las_vegas">🎰 Las Vegas &amp; Groom Lake, NV (LAS)</option>
+          <option value="philadelphia">🔔 Philadelphia, PA (PHL · Delaware River)</option>
+          <option value="phoenix">🌵 Phoenix, AZ (PHX · Semiconductor Desert)</option>
+          <option value="san_diego">⚓ San Diego, CA (SAN · Naval MegaBase)</option>
+          <option value="detroit">🚗 Detroit, MI (DTW · Great Lakes Border)</option>
+          <option value="new_orleans">🎷 New Orleans, LA (MSY · Mississippi River)</option>
+          <option value="honolulu">🌺 Honolulu, HI (HNL · Pacific Command)</option>
+          <option value="anchorage">❄️ Anchorage, AK (ANC · Global Air Cargo)</option>
+        </optgroup>
+      </select>
+
+      <button id="btn-tilt-map" class="px-2 py-1 rounded bg-cyan-500/20 border border-cyan-400/40 text-cyan-200 hover:bg-cyan-500/35 transition" title="Toggle 3D perspective tilt">
+        🧭 3D: 35°
+      </button>
+      <button id="btn-north-up" class="px-2 py-1 rounded hover:bg-slate-800 text-slate-300 transition" title="Align North Up">
+        ▲ 000°
+      </button>
+    </div>
+
+    <!-- Right: Universal Search Box, Roll-Up All & Clean Mode -->
+    <div class="pointer-events-auto flex items-center gap-1.5 gev-panel px-2.5 py-1.5 rounded-lg">
+      <div class="relative flex items-center">
+        <input id="search-input" type="text" placeholder="Search any US city, address or zip..." class="w-40 sm:w-52 bg-slate-900 border border-slate-700 focus:border-cyan-400 rounded px-2.5 py-1 text-xs font-mono-tech text-white placeholder-slate-500 focus:outline-none">
+        <button id="btn-search-go" class="ml-1 px-2 py-1 rounded bg-cyan-600/30 hover:bg-cyan-600/50 text-cyan-200 text-xs font-mono-tech border border-cyan-500/40">GO</button>
+      </div>
+
+      <button id="btn-rollup-all" class="px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700 text-cyan-300 text-xs font-mono-tech border border-slate-700" title="Collapse or Expand all accordion drawers to maximize map view">
+        ⇳ ROLL UP ALL
+      </button>
+
+      <button id="btn-clean-mode" class="px-2.5 py-1 rounded bg-slate-800 hover:bg-cyan-500/30 text-emerald-300 text-xs font-mono-tech font-bold border border-emerald-400/50" title="Clean View (Hide all side panels, keep 100% full screen for map)">
+        👁️ CLEAN VIEW
+      </button>
+
+      <button id="btn-download-app" class="px-2.5 py-1 rounded bg-emerald-500/25 hover:bg-emerald-500/40 text-emerald-200 text-xs font-mono-tech font-bold border border-emerald-400/60" title="1-Click Download complete index.html for GitHub Pages">
+        ⬇️ DOWNLOAD
+      </button>
+      <button id="btn-copy-app" class="px-2 py-1 rounded bg-cyan-500/20 hover:bg-cyan-500/35 text-cyan-200 text-xs font-mono-tech border border-cyan-400/40" title="Copy full HTML">
+        📋
+      </button>
+    </div>
+  </header>
+
+  <!-- LEFT RAIL: GROUPED ACCORDION DATA LAYERS (Like Elements Together · Roll-Up / Full-Length) -->
+  <aside id="left-rail" class="fixed top-16 sm:top-14 left-2.5 bottom-28 w-72 sm:w-80 z-20 flex flex-col pointer-events-none transition-transform duration-200">
+    <div class="pointer-events-auto gev-panel rounded-lg flex flex-col max-h-full overflow-hidden">
+      <!-- Master Panel Header -->
+      <div data-drag-window="left-rail" class="gev-drag-handle flex items-center justify-between px-3 py-2 gev-divider bg-slate-900/60 text-xs font-mono-tech">
+        <div class="flex items-center gap-1.5">
+          <span class="text-slate-400">⠿</span>
+          <span class="text-cyan-400 font-bold tracking-wider">🛰️ CITY DATA LAYERS</span>
+          <span id="active-layer-badge" class="text-[10px] px-1.5 py-0.2 rounded bg-cyan-500/20 text-cyan-300">14 ON</span>
+        </div>
+        <div class="flex items-center gap-1">
+          <button id="btn-all-layers-toggle" class="text-[10px] px-1.5 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-cyan-300">ALL ON</button>
+          <button id="btn-toggle-left-dock" class="text-slate-400 hover:text-white px-1" title="Minimize/Expand entire left panel">▾</button>
+        </div>
+      </div>
+
+      <!-- Scrollable Accordion Container -->
+      <div id="left-rail-body" class="flex-1 overflow-y-auto p-2 space-y-2 text-xs font-mono-tech">
+
+        <!-- GROUP 1: MOVEMENT & AIRSPACE -->
+        <div class="accordion-group rounded-lg bg-slate-900/75 border border-slate-800 overflow-hidden">
+          <div data-accordion="group-movement" class="accordion-header flex items-center justify-between px-2.5 py-1.5 bg-slate-900/90 cursor-pointer hover:bg-slate-800/80 transition">
+            <div class="flex items-center gap-1.5">
+              <span class="accordion-arrow text-cyan-400 text-[10px]">▾</span>
+              <span class="text-cyan-300 font-bold text-[11px]">✈️ MOVEMENT &amp; AIRSPACE</span>
+            </div>
+            <span class="text-[10px] text-slate-400">4 Layers</span>
+          </div>
+          <div id="group-movement" class="accordion-content p-2 space-y-1.5">
+            <label class="flex items-center justify-between cursor-pointer py-0.5">
+              <span class="text-slate-200">✈️ Live Flights (OpenSky / adsb.lol)</span>
+              <input type="checkbox" data-layer-id="flights" checked="" class="layer-toggle accent-cyan-400 cursor-pointer">
+            </label>
+            <label class="flex items-center justify-between cursor-pointer py-0.5">
+              <span class="text-slate-200">🎖️ Military &amp; ISR Airspace</span>
+              <input type="checkbox" data-layer-id="military" checked="" class="layer-toggle accent-cyan-400 cursor-pointer">
+            </label>
+            <label class="flex items-center justify-between cursor-pointer py-0.5">
+              <span class="text-slate-200">🚢 Marine Vessels &amp; River Barges (AIS)</span>
+              <input type="checkbox" data-layer-id="vessels" checked="" class="layer-toggle accent-cyan-400 cursor-pointer">
+            </label>
+            <label class="flex items-center justify-between cursor-pointer py-0.5">
+              <span class="text-slate-200">🛰️ Low Earth Orbit Satellites (SGP4)</span>
+              <input type="checkbox" data-layer-id="satellites" checked="" class="layer-toggle accent-cyan-400 cursor-pointer">
+            </label>
+          </div>
+        </div>
+
+        <!-- GROUP 2: BUILT ENVIRONMENT & 3D INFRASTRUCTURE -->
+        <div class="accordion-group rounded-lg bg-slate-900/75 border border-slate-800 overflow-hidden">
+          <div data-accordion="group-urban" class="accordion-header flex items-center justify-between px-2.5 py-1.5 bg-slate-900/90 cursor-pointer hover:bg-slate-800/80 transition">
+            <div class="flex items-center gap-1.5">
+              <span class="accordion-arrow text-cyan-400 text-[10px]">▾</span>
+              <span class="text-emerald-300 font-bold text-[11px]">🏢 3D URBAN ENVIRONMENT</span>
+            </div>
+            <span class="text-[10px] text-slate-400">4 Layers</span>
+          </div>
+          <div id="group-urban" class="accordion-content p-2 space-y-1.5">
+            <label class="flex items-center justify-between cursor-pointer py-0.5">
+              <span class="text-slate-200">🏢 3D Extruded City Buildings</span>
+              <input type="checkbox" data-layer-id="buildings_3d" checked="" class="layer-toggle accent-cyan-400 cursor-pointer">
+            </label>
+            <label class="flex items-center justify-between cursor-pointer py-0.5">
+              <span class="text-slate-200">📹 Live City &amp; Highway Traffic Cams</span>
+              <input type="checkbox" data-layer-id="cctv" checked="" class="layer-toggle accent-cyan-400 cursor-pointer">
+            </label>
+            <label class="flex items-center justify-between cursor-pointer py-0.5">
+              <span class="text-slate-200">🚗 Road Traffic Flow &amp; Congestion</span>
+              <input type="checkbox" data-layer-id="traffic" checked="" class="layer-toggle accent-cyan-400 cursor-pointer">
+            </label>
+            <label class="flex items-center justify-between cursor-pointer py-0.5">
+              <span class="text-slate-200">🚆 Passenger Rail &amp; Metro Transit</span>
+              <input type="checkbox" data-layer-id="transit" checked="" class="layer-toggle accent-cyan-400 cursor-pointer">
+            </label>
+          </div>
+        </div>
+
+        <!-- GROUP 3: CRITICAL INFRASTRUCTURE, POWER & TELECOM -->
+        <div class="accordion-group rounded-lg bg-slate-900/75 border border-slate-800 overflow-hidden">
+          <div data-accordion="group-infra" class="accordion-header flex items-center justify-between px-2.5 py-1.5 bg-slate-900/90 cursor-pointer hover:bg-slate-800/80 transition">
+            <div class="flex items-center gap-1.5">
+              <span class="accordion-arrow text-cyan-400 text-[10px]">▾</span>
+              <span class="text-purple-300 font-bold text-[11px]">⚡ POWER, GRID &amp; TELECOM</span>
+            </div>
+            <span class="text-[10px] text-slate-400">4 Layers</span>
+          </div>
+          <div id="group-infra" class="accordion-content p-2 space-y-1.5">
+            <label class="flex items-center justify-between cursor-pointer py-0.5">
+              <span class="text-slate-200">⚡ Electric Substations &amp; Power Grid</span>
+              <input type="checkbox" data-layer-id="power_grid" checked="" class="layer-toggle accent-cyan-400 cursor-pointer">
+            </label>
+            <label class="flex items-center justify-between cursor-pointer py-0.5">
+              <span class="text-slate-200">🌐 Fiber Landings, Data Centers &amp; IXPs</span>
+              <input type="checkbox" data-layer-id="telecom_fiber" checked="" class="layer-toggle accent-cyan-400 cursor-pointer">
+            </label>
+            <label class="flex items-center justify-between cursor-pointer py-0.5">
+              <span class="text-slate-200">🏥 Hospitals, Police &amp; Fire Hubs</span>
+              <input type="checkbox" data-layer-id="emergency_services" checked="" class="layer-toggle accent-cyan-400 cursor-pointer">
+            </label>
+            <label class="flex items-center justify-between cursor-pointer py-0.5">
+              <span class="text-slate-200">📡 GNSS / GPS Integrity Mesh (GPSJAM)</span>
+              <input type="checkbox" data-layer-id="gnss_jam" checked="" class="layer-toggle accent-cyan-400 cursor-pointer">
+            </label>
+          </div>
+        </div>
+
+        <!-- GROUP 4: WEATHER, RADAR & ENVIRONMENTAL HAZARDS -->
+        <div class="accordion-group rounded-lg bg-slate-900/75 border border-slate-800 overflow-hidden">
+          <div data-accordion="group-weather" class="accordion-header flex items-center justify-between px-2.5 py-1.5 bg-slate-900/90 cursor-pointer hover:bg-slate-800/80 transition">
+            <div class="flex items-center gap-1.5">
+              <span class="accordion-arrow text-cyan-400 text-[10px]">▾</span>
+              <span class="text-amber-300 font-bold text-[11px]">🌪️ WEATHER &amp; HAZARDS</span>
+            </div>
+            <span class="text-[10px] text-slate-400">4 Layers</span>
+          </div>
+          <div id="group-weather" class="accordion-content p-2 space-y-1.5">
+            <label class="flex items-center justify-between cursor-pointer py-0.5">
+              <span class="text-slate-200">🌀 NEXRAD Doppler Radar &amp; Wind</span>
+              <input type="checkbox" data-layer-id="nexrad" checked="" class="layer-toggle accent-cyan-400 cursor-pointer">
+            </label>
+            <label class="flex items-center justify-between cursor-pointer py-0.5">
+              <span class="text-slate-200">🔥 NASA FIRMS Active Wildfires (VIIRS)</span>
+              <input type="checkbox" data-layer-id="wildfires" checked="" class="layer-toggle accent-cyan-400 cursor-pointer">
+            </label>
+            <label class="flex items-center justify-between cursor-pointer py-0.5">
+              <span class="text-slate-200">🌍 USGS Earthquakes (Real-Time 24H)</span>
+              <input type="checkbox" data-layer-id="earthquakes" checked="" class="layer-toggle accent-cyan-400 cursor-pointer">
+            </label>
+            <label class="flex items-center justify-between cursor-pointer py-0.5">
+              <span class="text-slate-200">💨 EPA Air Quality (AirNow PM2.5)</span>
+              <input type="checkbox" data-layer-id="air_quality" checked="" class="layer-toggle accent-cyan-400 cursor-pointer">
+            </label>
+          </div>
+        </div>
+
+        <!-- GROUP 5: RF SPECTRUM, SCANNERS & EMERGENCY RADIO -->
+        <div class="accordion-group rounded-lg bg-slate-900/75 border border-slate-800 overflow-hidden">
+          <div data-accordion="group-radio" class="accordion-header flex items-center justify-between px-2.5 py-1.5 bg-slate-900/90 cursor-pointer hover:bg-slate-800/80 transition">
+            <div class="flex items-center gap-1.5">
+              <span class="accordion-arrow text-cyan-400 text-[10px]">▾</span>
+              <span class="text-rose-300 font-bold text-[11px]">📻 RF SPECTRUM &amp; SCANNERS</span>
+            </div>
+            <span class="text-[10px] text-slate-400">3 Layers</span>
+          </div>
+          <div id="group-radio" class="accordion-content p-2 space-y-1.5">
+            <label class="flex items-center justify-between cursor-pointer py-0.5">
+              <span class="text-slate-200">📻 Airport ATC Tower &amp; Marine VHF</span>
+              <input type="checkbox" data-layer-id="atc_radio" checked="" class="layer-toggle accent-cyan-400 cursor-pointer">
+            </label>
+            <label class="flex items-center justify-between cursor-pointer py-0.5">
+              <span class="text-slate-200">📡 Police/Fire/EMS Dispatch Scanner</span>
+              <input type="checkbox" data-layer-id="police_scanner" checked="" class="layer-toggle accent-cyan-400 cursor-pointer">
+            </label>
+            <label class="flex items-center justify-between cursor-pointer py-0.5">
+              <span class="text-slate-200">📶 APRS &amp; Meshtastic LoRa Nodes</span>
+              <input type="checkbox" data-layer-id="aprs_lora" checked="" class="layer-toggle accent-cyan-400 cursor-pointer">
+            </label>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </aside>
+
+  <!-- RIGHT RAIL: CITY INTELLIGENCE DOSSIER & LIVE LOCAL SENSOR MONITOR -->
+  <aside id="right-rail" class="fixed top-16 sm:top-14 right-2.5 bottom-28 w-80 sm:w-88 z-20 flex flex-col pointer-events-none transition-transform duration-200">
+    <div class="pointer-events-auto gev-panel rounded-lg flex flex-col max-h-full overflow-hidden">
+      <!-- Panel Header -->
+      <div data-drag-window="right-rail" class="gev-drag-handle flex items-center justify-between px-3 py-2 gev-divider bg-slate-900/60 text-xs font-mono-tech">
+        <span class="text-cyan-400 font-bold flex items-center gap-1.5">
+          <span class="text-slate-400">⠿</span> 🎯 CITY INTEL &amp; TELEMETRY
+        </span>
+        <button id="btn-toggle-right-dock" class="text-slate-400 hover:text-white px-1">▾</button>
+      </div>
+
+      <!-- Tab Switcher -->
+      <div class="flex items-center border-b border-cyan-500/25 font-mono-tech text-[11px]">
+        <button data-tab="dossier" class="right-tab flex-1 py-1.5 text-center font-semibold text-cyan-300 border-b-2 border-cyan-400 bg-cyan-500/10">
+          📊 DOSSIER
+        </button>
+        <button data-tab="cctv" class="right-tab flex-1 py-1.5 text-center text-slate-400 hover:text-white">
+          📹 CAMS (<span id="cctv-count-badge">12</span>)
+        </button>
+        <button data-tab="radio" class="right-tab flex-1 py-1.5 text-center text-slate-400 hover:text-white">
+          📻 RF / AUDIO
+        </button>
+        <button data-tab="contacts" class="right-tab flex-1 py-1.5 text-center text-slate-400 hover:text-white">
+          📡 CONTACTS
+        </button>
+      </div>
+
+      <!-- TAB 1: CITY INTELLIGENCE DOSSIER (Public Demographics, Economics, Built Environment) -->
+      <div id="tab-dossier" class="tab-pane flex-1 overflow-y-auto p-3 space-y-2.5 font-mono-tech text-xs">
+        <div class="p-2.5 rounded bg-slate-900/90 border border-cyan-500/40 space-y-1.5">
+          <div class="flex items-center justify-between">
+            <span id="dossier-city-name" class="text-cyan-300 font-bold text-sm">NASHVILLE, TENNESSEE</span>
+            <span id="dossier-state-badge" class="px-2 py-0.5 rounded bg-emerald-500/20 text-emerald-300 text-[10px] font-semibold">USA · DAVIDSON COUNTY</span>
+          </div>
+          <div id="dossier-summary-desc" class="text-[11px] text-slate-300 leading-relaxed">State capital and commercial center on the Cumberland River; major healthcare, music, finance, and logistics hub.</div>
+        </div>
+
+        <!-- 6-Metric Public Data Grid -->
+        <div class="grid grid-cols-2 gap-1.5 text-[11px]">
+          <div class="p-2 rounded bg-slate-950 border border-slate-800">
+            <div class="text-[9px] text-slate-400 uppercase">POPULATION (CENSUS)</div>
+            <div id="metric-pop" class="text-sm font-bold text-emerald-300 mt-0.5">715,884</div>
+            <div id="metric-metro-pop" class="text-[10px] text-slate-400">Metro: 2,072,000</div>
+          </div>
+          <div class="p-2 rounded bg-slate-950 border border-slate-800">
+            <div class="text-[9px] text-slate-400 uppercase">MEDIAN HOUSEHOLD INC</div>
+            <div id="metric-income" class="text-sm font-bold text-amber-300 mt-0.5">$71,328</div>
+            <div id="metric-gdp" class="text-[10px] text-slate-400">Metro GDP: $178B</div>
+          </div>
+          <div class="p-2 rounded bg-slate-950 border border-slate-800">
+            <div class="text-[9px] text-slate-400 uppercase">HOUSING DWELLINGS</div>
+            <div id="metric-housing" class="text-sm font-bold text-white mt-0.5">342,100 Units</div>
+            <div class="text-[10px] text-slate-400">Density: 1,418/sq mi</div>
+          </div>
+          <div class="p-2 rounded bg-slate-950 border border-slate-800">
+            <div class="text-[9px] text-slate-400 uppercase">PRIMARY AIRPORT</div>
+            <div id="metric-airport" class="text-sm font-bold text-cyan-300 mt-0.5">BNA (Nashville Int'l)</div>
+            <div id="metric-airport-pax" class="text-[10px] text-slate-400">22.8M Pax</div>
+          </div>
+          <div class="p-2 rounded bg-slate-950 border border-slate-800">
+            <div class="text-[9px] text-slate-400 uppercase">CRITICAL INFRASTRUCTURE</div>
+            <div id="metric-infra-count" class="text-sm font-bold text-purple-300 mt-0.5">48 Substations</div>
+            <div class="text-[10px] text-slate-400">TVA Grid · Cumberland Rvr</div>
+          </div>
+          <div class="p-2 rounded bg-slate-950 border border-slate-800">
+            <div class="text-[9px] text-slate-400 uppercase">AIR QUALITY / ELEVATION</div>
+            <div id="metric-aqi" class="text-sm font-bold text-emerald-300 mt-0.5">AQI 38 (GOOD)</div>
+            <div id="metric-elev" class="text-[10px] text-slate-400">597 ft · 182 m</div>
+          </div>
+        </div>
+
+        <div class="p-2 rounded bg-slate-950/80 border border-slate-800 text-[10px] text-slate-400 flex justify-between">
+          <span>Sources: US Census Bureau · USGS · FAA · OpenStreetMap</span>
+          <span class="text-cyan-400">Public Domain / ODbL</span>
+        </div>
+      </div>
+
+      <!-- TAB 2: LIVE LOCAL CCTV CAMERA FEEDS -->
+      <div id="tab-cctv" class="tab-pane hidden flex-1 overflow-y-auto p-3 space-y-2 font-mono-tech text-xs">
+        <!-- Live Video Monitor -->
+        <div class="relative rounded overflow-hidden border border-cyan-500/40 bg-slate-950 h-36 shadow-lg">
+          <canvas id="cctv-preview-canvas" width="320" height="150" class="w-full h-full block"></canvas>
+          <div class="absolute top-1.5 left-2 right-2 flex items-center justify-between text-[10px]">
+            <span id="cctv-cam-title" class="px-1.5 py-0.5 rounded bg-black/85 text-cyan-300 border border-cyan-500/30 truncate max-w-[210px]">TDOT #01 · Broadway &amp; 4th Ave S (Downtown Core)</span>
+            <span class="px-1.5 py-0.5 rounded bg-rose-600/90 text-white font-bold shrink-0">● LIVE FEED</span>
+          </div>
+          <div class="absolute bottom-1.5 left-2 right-2 flex items-center justify-between text-[9px] bg-black/75 px-1.5 py-0.5 rounded text-slate-300">
+            <span id="cctv-tech-specs">1080p PTZ · 30 FPS · HDG 240°</span>
+            <span class="text-emerald-400">STATE DOT FEED</span>
+          </div>
+        </div>
+
+        <!-- Official DOT Live Portal Link Bar -->
+        <div class="p-2 rounded bg-slate-950/90 border border-cyan-500/30 flex items-center justify-between text-[10px]">
+          <div>
+            <div id="cctv-dot-system-label" class="text-cyan-300 font-bold">TDOT SmartWay (550+ Live Cameras statewide)</div>
+            <div class="text-[9px] text-slate-400">Official State / Municipal Live Feeds</div>
+          </div>
+          <a id="btn-open-dot-portal" href="https://smartway.tn.gov/traffic" target="_blank" rel="noopener noreferrer" class="px-2 py-1 rounded bg-cyan-600/30 hover:bg-cyan-600/50 border border-cyan-400/50 text-cyan-200 font-semibold text-[10px] transition">
+            OPEN DOT MAP ↗
+          </a>
+        </div>
+
+        <!-- Camera Corridor Filter Buttons -->
+        <div class="flex items-center gap-1 text-[10px]">
+          <button data-cam-filter="all" class="cam-filter-btn px-2 py-0.5 rounded bg-cyan-500/25 border border-cyan-400 text-cyan-200">ALL</button>
+          <button data-cam-filter="highway" class="cam-filter-btn px-2 py-0.5 rounded bg-slate-800 text-slate-300 hover:text-white">HIGHWAYS</button>
+          <button data-cam-filter="downtown" class="cam-filter-btn px-2 py-0.5 rounded bg-slate-800 text-slate-300 hover:text-white">URBAN</button>
+          <button data-cam-filter="airport" class="cam-filter-btn px-2 py-0.5 rounded bg-slate-800 text-slate-300 hover:text-white">AIRPORT</button>
+          <button data-cam-filter="waterway" class="cam-filter-btn px-2 py-0.5 rounded bg-slate-800 text-slate-300 hover:text-white">WATER</button>
+        </div>
+
+        <!-- Camera Feed List -->
+        <div id="cctv-cam-list" class="space-y-1 max-h-48 overflow-y-auto pr-0.5">
+        <div data-cam="bna-01" class="cam-row p-1.5 rounded bg-slate-900 hover:bg-slate-800 border border-cyan-400 cursor-pointer flex items-center justify-between transition">
+          <div class="truncate pr-1">
+            <div class="text-white text-[11px] font-medium truncate">TDOT #01 · Broadway &amp; 4th Ave S (Downtown Core)</div>
+            <div class="text-[9px] text-slate-400">1080p PTZ · HDG 240°</div>
+          </div>
+          <span class="text-[9px] px-1.5 py-0.5 rounded bg-cyan-500/20 text-cyan-300 uppercase shrink-0">downtown</span>
+        </div>
+      
+        <div data-cam="bna-02" class="cam-row p-1.5 rounded bg-slate-900 hover:bg-slate-800 border border-slate-800 cursor-pointer flex items-center justify-between transition">
+          <div class="truncate pr-1">
+            <div class="text-white text-[11px] font-medium truncate">TDOT #02 · Korean Veterans Memorial Bridge (Cumberland River)</div>
+            <div class="text-[9px] text-slate-400">1080p PTZ · HDG 65°</div>
+          </div>
+          <span class="text-[9px] px-1.5 py-0.5 rounded bg-cyan-500/20 text-cyan-300 uppercase shrink-0">waterway</span>
+        </div>
+      
+        <div data-cam="bna-03" class="cam-row p-1.5 rounded bg-slate-900 hover:bg-slate-800 border border-slate-800 cursor-pointer flex items-center justify-between transition">
+          <div class="truncate pr-1">
+            <div class="text-white text-[11px] font-medium truncate">TDOT #03 · BNA Runway 20R Approach &amp; Donelson Pike</div>
+            <div class="text-[9px] text-slate-400">4K Fixed · HDG 204°</div>
+          </div>
+          <span class="text-[9px] px-1.5 py-0.5 rounded bg-cyan-500/20 text-cyan-300 uppercase shrink-0">airport</span>
+        </div>
+      
+        <div data-cam="bna-04" class="cam-row p-1.5 rounded bg-slate-900 hover:bg-slate-800 border border-slate-800 cursor-pointer flex items-center justify-between transition">
+          <div class="truncate pr-1">
+            <div class="text-white text-[11px] font-medium truncate">TDOT #04 · I-40 East &amp; I-65 South Inner Loop Junction</div>
+            <div class="text-[9px] text-slate-400">1080p SmartWay · HDG 110°</div>
+          </div>
+          <span class="text-[9px] px-1.5 py-0.5 rounded bg-cyan-500/20 text-cyan-300 uppercase shrink-0">highway</span>
+        </div>
+      
+        <div data-cam="bna-05" class="cam-row p-1.5 rounded bg-slate-900 hover:bg-slate-800 border border-slate-800 cursor-pointer flex items-center justify-between transition">
+          <div class="truncate pr-1">
+            <div class="text-white text-[11px] font-medium truncate">TDOT #05 · I-24 West @ Mile 48 (Nissan Stadium / River)</div>
+            <div class="text-[9px] text-slate-400">1080p SmartWay · HDG 315°</div>
+          </div>
+          <span class="text-[9px] px-1.5 py-0.5 rounded bg-cyan-500/20 text-cyan-300 uppercase shrink-0">highway</span>
+        </div>
+      
+        <div data-cam="bna-06" class="cam-row p-1.5 rounded bg-slate-900 hover:bg-slate-800 border border-slate-800 cursor-pointer flex items-center justify-between transition">
+          <div class="truncate pr-1">
+            <div class="text-white text-[11px] font-medium truncate">TDOT #06 · I-440 Parkway @ Hillsboro Pike (Exit 3)</div>
+            <div class="text-[9px] text-slate-400">1080p SmartWay · HDG 180°</div>
+          </div>
+          <span class="text-[9px] px-1.5 py-0.5 rounded bg-cyan-500/20 text-cyan-300 uppercase shrink-0">highway</span>
+        </div>
+      
+        <div data-cam="bna-07" class="cam-row p-1.5 rounded bg-slate-900 hover:bg-slate-800 border border-slate-800 cursor-pointer flex items-center justify-between transition">
+          <div class="truncate pr-1">
+            <div class="text-white text-[11px] font-medium truncate">TDOT #07 · I-40 West @ White Bridge Road (Mile 204)</div>
+            <div class="text-[9px] text-slate-400">1080p SmartWay · HDG 270°</div>
+          </div>
+          <span class="text-[9px] px-1.5 py-0.5 rounded bg-cyan-500/20 text-cyan-300 uppercase shrink-0">highway</span>
+        </div>
+      
+        <div data-cam="bna-08" class="cam-row p-1.5 rounded bg-slate-900 hover:bg-slate-800 border border-slate-800 cursor-pointer flex items-center justify-between transition">
+          <div class="truncate pr-1">
+            <div class="text-white text-[11px] font-medium truncate">TDOT #08 · I-65 North @ Trinity Lane (Northgate Pass)</div>
+            <div class="text-[9px] text-slate-400">1080p SmartWay · HDG 360°</div>
+          </div>
+          <span class="text-[9px] px-1.5 py-0.5 rounded bg-cyan-500/20 text-cyan-300 uppercase shrink-0">highway</span>
+        </div>
+      
+        <div data-cam="bna-09" class="cam-row p-1.5 rounded bg-slate-900 hover:bg-slate-800 border border-slate-800 cursor-pointer flex items-center justify-between transition">
+          <div class="truncate pr-1">
+            <div class="text-white text-[11px] font-medium truncate">TDOT #09 · Briley Parkway (SR-155) @ Elm Hill Pike</div>
+            <div class="text-[9px] text-slate-400">1080p SmartWay · HDG 90°</div>
+          </div>
+          <span class="text-[9px] px-1.5 py-0.5 rounded bg-cyan-500/20 text-cyan-300 uppercase shrink-0">highway</span>
+        </div>
+      
+        <div data-cam="bna-10" class="cam-row p-1.5 rounded bg-slate-900 hover:bg-slate-800 border border-slate-800 cursor-pointer flex items-center justify-between transition">
+          <div class="truncate pr-1">
+            <div class="text-white text-[11px] font-medium truncate">TDOT #10 · West End Ave @ 21st Ave S (Vanderbilt Gateway)</div>
+            <div class="text-[9px] text-slate-400">1080p Municipal · HDG 220°</div>
+          </div>
+          <span class="text-[9px] px-1.5 py-0.5 rounded bg-cyan-500/20 text-cyan-300 uppercase shrink-0">downtown</span>
+        </div>
+      
+        <div data-cam="bna-11" class="cam-row p-1.5 rounded bg-slate-900 hover:bg-slate-800 border border-slate-800 cursor-pointer flex items-center justify-between transition">
+          <div class="truncate pr-1">
+            <div class="text-white text-[11px] font-medium truncate">TDOT #11 · Charlotte Ave &amp; Capitol Boulevard</div>
+            <div class="text-[9px] text-slate-400">1080p Municipal · HDG 140°</div>
+          </div>
+          <span class="text-[9px] px-1.5 py-0.5 rounded bg-cyan-500/20 text-cyan-300 uppercase shrink-0">downtown</span>
+        </div>
+      
+        <div data-cam="bna-12" class="cam-row p-1.5 rounded bg-slate-900 hover:bg-slate-800 border border-slate-800 cursor-pointer flex items-center justify-between transition">
+          <div class="truncate pr-1">
+            <div class="text-white text-[11px] font-medium truncate">TDOT #12 · BNA Air Cargo &amp; International Apron Gate 4</div>
+            <div class="text-[9px] text-slate-400">4K Ramp Cam · HDG 120°</div>
+          </div>
+          <span class="text-[9px] px-1.5 py-0.5 rounded bg-cyan-500/20 text-cyan-300 uppercase shrink-0">airport</span>
+        </div>
+      </div>
+      </div>
+
+      <!-- TAB 3: RF SPECTRUM, ATC TOWER & DISPATCH TUNER -->
+      <div id="tab-radio" class="tab-pane hidden flex-1 overflow-y-auto p-3 space-y-2.5 font-mono-tech text-xs">
+        <div class="p-2 rounded bg-slate-950 border border-slate-800 space-y-2">
+          <div class="flex items-center justify-between">
+            <span class="text-amber-300 font-bold text-[11px]">📻 LOCAL ATC &amp; SCANNER TUNER</span>
+            <button id="btn-toggle-synth-audio" class="px-2 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-600 text-[10px]">
+              🔈 AUDIO: OFF
+            </button>
+          </div>
+          <select id="radio-channel-select" aria-label="Select Radio Frequency" class="w-full bg-slate-900 border border-slate-700 rounded px-2 py-1 text-cyan-300 text-xs"><option value="bna_twr">119.350 MHz · BNA Nashville Tower ATC</option><option value="bna_app">118.400 MHz · Nashville Approach / Departure</option><option value="metro_police">460.100 MHz · Metro Nashville Police &amp; Fire Dispatch</option></select>
+          <div id="radio-transcript-display" class="p-2 rounded bg-black/70 border border-cyan-500/30 text-[11px] text-emerald-300 leading-relaxed">[RADIO] "American 1204, Nashville Tower, wind 210 at 8 knots, cleared to land Runway 20R."</div>
+        </div>
+      </div>
+
+      <!-- TAB 4: NEARBY CONTACTS ROSTER (Air, Water, Ground) -->
+      <div id="tab-contacts" class="tab-pane hidden flex-1 overflow-y-auto p-3 space-y-1.5 font-mono-tech text-xs">
+        <div id="contacts-list" class="space-y-1">
+        <div data-contact="AAL1204" class="contact-row p-2 rounded bg-slate-900/90 border border-slate-800 hover:border-cyan-400 cursor-pointer flex items-center justify-between">
+          <div>
+            <div class="font-bold text-cyan-300 text-[11px]">AAL1204 · <span class="text-white font-normal">American Airlines 1204 (B737-800)</span></div>
+            <div class="text-[10px] text-slate-400">DFW → BNA RWY 20R</div>
+          </div>
+          <div class="text-right text-[10px] text-slate-300">
+            <div>195 kt</div>
+            <div class="text-cyan-400">3800 ft</div>
+          </div>
+        </div>
+      
+        <div data-contact="SWA842" class="contact-row p-2 rounded bg-slate-900/90 border border-slate-800 hover:border-cyan-400 cursor-pointer flex items-center justify-between">
+          <div>
+            <div class="font-bold text-cyan-300 text-[11px]">SWA842 · <span class="text-white font-normal">Southwest 842 (B737 MAX 8)</span></div>
+            <div class="text-[10px] text-slate-400">MCO → BNA RWY 02L</div>
+          </div>
+          <div class="text-right text-[10px] text-slate-300">
+            <div>220 kt</div>
+            <div class="text-cyan-400">5600 ft</div>
+          </div>
+        </div>
+      
+        <div data-contact="TN-ANG-C130" class="contact-row p-2 rounded bg-slate-900/90 border border-slate-800 hover:border-cyan-400 cursor-pointer flex items-center justify-between">
+          <div>
+            <div class="font-bold text-cyan-300 text-[11px]">TN-ANG-C130 · <span class="text-white font-normal">Tennessee Air National Guard C-130H (118th Wing)</span></div>
+            <div class="text-[10px] text-slate-400">Berry Field BNA Local Sortie</div>
+          </div>
+          <div class="text-right text-[10px] text-slate-300">
+            <div>240 kt</div>
+            <div class="text-cyan-400">8500 ft</div>
+          </div>
+        </div>
+      
+        <div data-contact="TUG_CUMBERLAND" class="contact-row p-2 rounded bg-slate-900/90 border border-slate-800 hover:border-cyan-400 cursor-pointer flex items-center justify-between">
+          <div>
+            <div class="font-bold text-cyan-300 text-[11px]">TUG_CUMBERLAND · <span class="text-white font-normal">M/V Cumberland Star (Towboat &amp; Coal Barge)</span></div>
+            <div class="text-[10px] text-slate-400">Cumberland River Mile 191 Downbound</div>
+          </div>
+          <div class="text-right text-[10px] text-slate-300">
+            <div>8.5 kt</div>
+            <div class="text-cyan-400">285°</div>
+          </div>
+        </div>
+      </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- BOTTOM BAR: OPTICS (1-7), MAP SOURCES, TIME CONTROLS & TELEMETRY -->
+  <footer id="bottom-bar" class="fixed bottom-2 left-2.5 right-2.5 z-30 flex flex-col gap-1.5 pointer-events-none">
+    <!-- Live Situation Headline Ticker -->
+    <div class="pointer-events-auto gev-panel rounded-lg px-3 py-1 flex items-center justify-between gap-3 font-mono-tech text-[11px] border border-cyan-500/30">
+      <div class="flex items-center gap-2 min-w-0 flex-1">
+        <span class="px-1.5 py-0.5 rounded bg-cyan-500/20 text-cyan-300 font-bold text-[10px] shrink-0">⚡ INTELLIGENCE TICKER</span>
+        <span id="ticker-text" class="truncate text-slate-200">
+          [OMNIVIEW] Unified Spatial Intelligence active over Nashville, TN · BNA approaches nominal · TVA grid 100% operational
+        </span>
+      </div>
+      <button id="btn-fold-docks" class="px-2 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 border border-slate-600 text-[10px] shrink-0" title="Collapse both side panels">
+        FOLD PANELS
+      </button>
+    </div>
+
+    <!-- Controls Row: Optics + Map Stack + Coordinates -->
+    <div class="pointer-events-auto flex flex-wrap items-center justify-between gap-2">
+      <!-- 7 Optics Filters -->
+      <div class="gev-panel rounded-lg px-2 py-1 flex items-center gap-1 font-mono-tech text-[11px]">
+        <span class="text-[10px] text-slate-400 px-1">OPTICS:</span>
+        <button data-optics="normal" class="optics-btn px-2 py-0.5 rounded bg-cyan-500/25 border border-cyan-400 text-cyan-200">1 NORMAL</button>
+        <button data-optics="crt" class="optics-btn px-2 py-0.5 rounded hover:bg-slate-800 text-slate-300">2 CRT</button>
+        <button data-optics="nvg" class="optics-btn px-2 py-0.5 rounded hover:bg-slate-800 text-slate-300">3 NVG</button>
+        <button data-optics="flir" class="optics-btn px-2 py-0.5 rounded hover:bg-slate-800 text-slate-300">4 FLIR</button>
+        <button data-optics="cyber" class="optics-btn px-2 py-0.5 rounded hover:bg-slate-800 text-slate-300">5 CYBER</button>
+        <button data-optics="noir" class="optics-btn px-2 py-0.5 rounded hover:bg-slate-800 text-slate-300">6 NOIR</button>
+        <button data-optics="snow" class="optics-btn px-2 py-0.5 rounded hover:bg-slate-800 text-slate-300">7 SNOW</button>
+      </div>
+
+      <!-- 5 Map Stack Providers -->
+      <div class="gev-panel rounded-lg px-2 py-1 flex items-center gap-1 font-mono-tech text-[11px]">
+        <span class="text-[10px] text-slate-400 px-1">MAP SOURCE:</span>
+        <button data-mapstack="google3d" class="mapstack-btn px-2 py-0.5 rounded bg-cyan-500/25 border border-cyan-400 text-cyan-200">GOOGLE 3D</button>
+        <button data-mapstack="esri" class="mapstack-btn px-2 py-0.5 rounded hover:bg-slate-800 text-slate-300">ESRI SAT</button>
+        <button data-mapstack="osm" class="mapstack-btn px-2 py-0.5 rounded hover:bg-slate-800 text-slate-300">OSM VECTOR</button>
+        <button data-mapstack="sentinel" class="mapstack-btn px-2 py-0.5 rounded hover:bg-slate-800 text-slate-300">SENTINEL-2</button>
+        <button data-mapstack="sar" class="mapstack-btn px-2 py-0.5 rounded hover:bg-slate-800 text-slate-300">OPERA SAR</button>
+      </div>
+
+      <!-- Cursor Coordinates & Altitude -->
+      <div class="gev-panel rounded-lg px-2.5 py-1 flex items-center gap-2 font-mono-tech text-[11px]">
+        <span id="cursor-telemetry" class="text-cyan-300">36.1627°N, 86.7816°W · ALT 14.2 KM</span>
+        <span class="text-slate-600">|</span>
+        <span class="text-[10px] text-slate-400">© OpenStreetMap · USGS · NOAA</span>
+      </div>
+    </div>
+  </footer>
+
+  <!-- CLEAN MODE RESTORE PILL (Shown when panels are hidden) -->
+  <div id="clean-mode-restore-pill" class="fixed top-3 right-3 z-50 hidden items-center gap-2 gev-panel px-3 py-1.5 rounded-full border border-cyan-400 shadow-2xl font-mono-tech text-xs pointer-events-auto">
+    <span id="clean-status-label" class="text-emerald-300 font-semibold">📍 NASHVILLE, TENNESSEE · FULL SCREEN</span>
+    <button id="btn-exit-clean-mode" class="px-3 py-1 rounded-full bg-cyan-500/30 hover:bg-cyan-500/50 border border-cyan-300 text-white font-bold text-xs">
+      🎛️ RESTORE PANELS
+    </button>
+  </div>
+
+  <!-- TOAST BANNER -->
+  <div id="omni-toast" class="fixed top-16 left-1/2 -translate-x-1/2 z-50 px-4 py-2 rounded-full gev-panel border border-cyan-400 text-cyan-200 font-mono-tech text-xs shadow-2xl hidden pointer-events-none"></div>
+
+  <script>
+    // =========================================================================
+    // OMNIVIEW ALL-US & CANCUN SPATIAL INTELLIGENCE CORE ENGINE
+    // =========================================================================
+
+    const CITIES = {
+      nashville: {
+        name: "Nashville", state: "Tennessee", county: "Davidson County",
+        lat: 36.1627, lon: -86.7816, zoom: 12.2, tilt: 35, bearing: 0,
+        pop: "715,884", metroPop: "2,072,000", income: "$71,328", gdp: "$178B",
+        housing: "342,100 Units", airport: "BNA (Nashville Int'l)", pax: "22.8M Pax",
+        infraCount: "48 Substations", aqi: "AQI 38 (GOOD)", elev: "597 ft · 182 m",
+        desc: "State capital and commercial center on the Cumberland River; major healthcare, music, finance, and logistics hub.",
+        dotSystem: "TDOT SmartWay (550+ Live Cameras statewide)",
+        dotUrl: "https://smartway.tn.gov/traffic",
+        cams: [
+          { id: "bna-01", name: "TDOT #01 · Broadway & 4th Ave S (Downtown Core)", category: "downtown", heading: 240, fps: 30, resolution: "1080p PTZ" },
+          { id: "bna-02", name: "TDOT #02 · Korean Veterans Memorial Bridge (Cumberland River)", category: "waterway", heading: 65, fps: 30, resolution: "1080p PTZ" },
+          { id: "bna-03", name: "TDOT #03 · BNA Runway 20R Approach & Donelson Pike", category: "airport", heading: 204, fps: 30, resolution: "4K Fixed" },
+          { id: "bna-04", name: "TDOT #04 · I-40 East & I-65 South Inner Loop Junction", category: "highway", heading: 110, fps: 30, resolution: "1080p SmartWay" },
+          { id: "bna-05", name: "TDOT #05 · I-24 West @ Mile 48 (Nissan Stadium / River)", category: "highway", heading: 315, fps: 30, resolution: "1080p SmartWay" },
+          { id: "bna-06", name: "TDOT #06 · I-440 Parkway @ Hillsboro Pike (Exit 3)", category: "highway", heading: 180, fps: 30, resolution: "1080p SmartWay" },
+          { id: "bna-07", name: "TDOT #07 · I-40 West @ White Bridge Road (Mile 204)", category: "highway", heading: 270, fps: 30, resolution: "1080p SmartWay" },
+          { id: "bna-08", name: "TDOT #08 · I-65 North @ Trinity Lane (Northgate Pass)", category: "highway", heading: 360, fps: 30, resolution: "1080p SmartWay" },
+          { id: "bna-09", name: "TDOT #09 · Briley Parkway (SR-155) @ Elm Hill Pike", category: "highway", heading: 90, fps: 30, resolution: "1080p SmartWay" },
+          { id: "bna-10", name: "TDOT #10 · West End Ave @ 21st Ave S (Vanderbilt Gateway)", category: "downtown", heading: 220, fps: 30, resolution: "1080p Municipal" },
+          { id: "bna-11", name: "TDOT #11 · Charlotte Ave & Capitol Boulevard", category: "downtown", heading: 140, fps: 30, resolution: "1080p Municipal" },
+          { id: "bna-12", name: "TDOT #12 · BNA Air Cargo & International Apron Gate 4", category: "airport", heading: 120, fps: 30, resolution: "4K Ramp Cam" }
+        ],
+        radio: [
+          { id: "bna_twr", label: "119.350 MHz · BNA Nashville Tower ATC", msg: 'American 1204, Nashville Tower, wind 210 at 8 knots, cleared to land Runway 20R.' },
+          { id: "bna_app", label: "118.400 MHz · Nashville Approach / Departure", msg: 'Southwest 842, radar contact 6 miles northeast of BNA, descend to 3,000 feet.' },
+          { id: "metro_police", label: "460.100 MHz · Metro Nashville Police & Fire Dispatch", msg: 'Unit 24 on scene at West End corridor, roadway clear, normal patrol resumed.' }
+        ],
+        contacts: [
+          { callsign: "AAL1204", type: "flight", name: "American Airlines 1204 (B737-800)", route: "DFW → BNA RWY 20R", alt: 3800, spd: 195, hdg: 204, color: "#22d3ee" },
+          { callsign: "SWA842", type: "flight", name: "Southwest 842 (B737 MAX 8)", route: "MCO → BNA RWY 02L", alt: 5600, spd: 220, hdg: 24, color: "#22d3ee" },
+          { callsign: "TN-ANG-C130", type: "military", name: "Tennessee Air National Guard C-130H (118th Wing)", route: "Berry Field BNA Local Sortie", alt: 8500, spd: 240, hdg: 135, color: "#f59e0b" },
+          { callsign: "TUG_CUMBERLAND", type: "vessel", name: "M/V Cumberland Star (Towboat & Coal Barge)", route: "Cumberland River Mile 191 Downbound", alt: 0, spd: 8.5, hdg: 285, color: "#10b981" }
+        ],
+        buildings: [
+          { lat: 36.1612, lon: -86.7778, h: 188, label: "AT&T Building (Batman Tower · 188m)" },
+          { lat: 36.1585, lon: -86.7820, h: 142, label: "505 Nashville Residential Tower (142m)" },
+          { lat: 36.1658, lon: -86.7845, h: 135, label: "Tennessee State Capitol Building" },
+          { lat: 36.1598, lon: -86.7760, h: 110, label: "Bridgestone Arena & Convention Center" }
+        ]
+      },
+      memphis: {
+        name: "Memphis", state: "Tennessee", county: "Shelby County",
+        lat: 35.1495, lon: -90.0490, zoom: 12.0, tilt: 35, bearing: 0,
+        pop: "628,127", metroPop: "1,340,000", income: "$45,217", gdp: "$86B",
+        housing: "284,500 Units", airport: "MEM (Memphis SuperHub)", pax: "4.8M Pax + 4.1M Tons Cargo",
+        infraCount: "52 Substations", aqi: "AQI 42 (GOOD)", elev: "338 ft · 103 m",
+        desc: "Major Mississippi River inland port; worldwide air-cargo crossroads anchored by the global FedEx SuperHub.",
+        dotSystem: "TDOT SmartWay Memphis District",
+        dotUrl: "https://smartway.tn.gov/traffic",
+        cams: [
+          { id: "mem-01", name: "TDOT #01 · FedEx World Hub North Aircraft Ramp", category: "airport", heading: 180, fps: 30, resolution: "4K Ramp" },
+          { id: "mem-02", name: "TDOT #02 · Hernando de Soto Bridge (I-40 Mississippi River)", category: "waterway", heading: 270, fps: 30, resolution: "1080p PTZ" },
+          { id: "mem-03", name: "TDOT #03 · Beale Street & 2nd St Historic District", category: "downtown", heading: 90, fps: 30, resolution: "1080p Stream" },
+          { id: "mem-04", name: "TDOT #04 · I-55 Memphis & Arkansas Bridge Overlook", category: "highway", heading: 250, fps: 30, resolution: "1080p SmartWay" },
+          { id: "mem-05", name: "TDOT #05 · I-240 Midtown Loop @ Poplar Ave (Mile 15)", category: "highway", heading: 105, fps: 30, resolution: "1080p SmartWay" },
+          { id: "mem-06", name: "TDOT #06 · I-40 East @ Sam Cooper Boulevard Junction", category: "highway", heading: 80, fps: 30, resolution: "1080p SmartWay" }
+        ],
+        radio: [
+          { id: "mem_twr", label: "119.700 MHz · MEM Memphis Tower (Cargo Ops)", msg: 'FedEx 1402 Heavy, cleared for takeoff Runway 36C, contact departure 124.65.' }
+        ],
+        contacts: [
+          { callsign: "FDX1402", type: "flight", name: "FedEx Express 1402 (B777F)", route: "MEM → CUN (Cancun Cargo Trunk)", alt: 14200, spd: 380, hdg: 172, color: "#38bdf8" },
+          { callsign: "BARGE_MISS_04", type: "vessel", name: "M/V Mississippi Giant (12-Barge Grain Tow)", route: "Mississippi River Southbound", alt: 0, spd: 11.2, hdg: 182, color: "#10b981" }
+        ],
+        buildings: [
+          { lat: 35.1450, lon: -90.0530, h: 125, label: "100 North Main Building (131m)" },
+          { lat: 35.1480, lon: -90.0480, h: 105, label: "Raymond James Tower (123m)" }
+        ]
+      },
+      cancun: {
+        name: "Cancun", state: "Quintana Roo", county: "Benito Juarez",
+        lat: 21.1619, lon: -86.8515, zoom: 12.2, tilt: 38, bearing: 0,
+        pop: "1,084,000", metroPop: "2,042,000", income: "$11,660 PC", gdp: "$23.8B",
+        housing: "312,000 Dwellings", airport: "MMUN (Cancun Int'l)", pax: "32.4M Pax",
+        infraCount: "ARCOS-1 & Maya-1 Subsea", aqi: "AQI 22 (EXCELLENT)", elev: "30 ft · 9 m",
+        desc: "World premier Caribbean tourism and international aviation hub; designated August 2026 for the 60.76-hectare PODECOBI AI & Tech Pole.",
+        dotSystem: "Cancun Tourism & Maritime Webcams / C5 Quintana Roo",
+        dotUrl: "https://www.webcamsdemexico.com/",
+        cams: [
+          { id: "cun-01", name: "CUN-01 · Delfines Beach (El Mirador Hotel Zone KM 18)", category: "beach", heading: 85, fps: 30, resolution: "1080p HLS" },
+          { id: "cun-02", name: "CUN-02 · Punta Cancun Lighthouse & Forum Beach", category: "beach", heading: 45, fps: 30, resolution: "1080p HLS" },
+          { id: "cun-03", name: "CUN-03 · MMUN Airport Terminal 3 Apron & RWY 12R", category: "airport", heading: 122, fps: 30, resolution: "1080p PTZ" },
+          { id: "cun-04", name: "CUN-04 · Puerto Juarez Ultramar Ferry Terminal", category: "waterway", heading: 68, fps: 30, resolution: "1080p HLS" },
+          { id: "cun-05", name: "CUN-05 · Nichupte Lagoon & Calinda Bridge (KM 4.5)", category: "waterway", heading: 195, fps: 20, resolution: "1080p Stream" },
+          { id: "cun-06", name: "CUN-06 · Downtown Cancun (Tulum Ave & Ceviche Roundabout)", category: "downtown", heading: 160, fps: 25, resolution: "C5 QROO" },
+          { id: "cun-07", name: "CUN-07 · Marina Puerto Cancun Superyacht Channel", category: "waterway", heading: 110, fps: 30, resolution: "1080p HLS" },
+          { id: "cun-08", name: "CUN-08 · Punta Nizuc Coral Reef & Sargassum Barrier", category: "beach", heading: 135, fps: 20, resolution: "Marine Sensor" }
+        ],
+        radio: [
+          { id: "cun_twr", label: "118.600 MHz · MMUN Cancun Tower ATC", msg: 'Aeromexico 582, Cancun Tower, wind 110 at 14 knots, cleared to land Runway 12R.' },
+          { id: "cun_vhf", label: "156.800 MHz · Marine VHF Ch 16 (Isla Mujeres)", msg: 'Puerto Juarez Harbor Master to all vessels: moderate 1.2m swell in main channel.' }
+        ],
+        contacts: [
+          { callsign: "AMX582", type: "flight", name: "Aeromexico 582 (B787-9)", route: "MEX → CUN RWY 12R", alt: 3850, spd: 184, hdg: 122, color: "#22d3ee" },
+          { callsign: "ANX1209", type: "military", name: "Navy King Air 350i ER (Maritime ISR)", route: "Yucatan Channel Surveillance", alt: 8500, spd: 195, hdg: 35, color: "#f59e0b" },
+          { callsign: "ULTRAMAR1", type: "vessel", name: "ULTRAMAR I (High-Speed Ferry)", route: "Puerto Juarez → Isla Mujeres", alt: 0, spd: 24.5, hdg: 52, color: "#10b981" },
+          { callsign: "TM-001", type: "tren", name: "Maya Train 001 (Alstom X'Trapolis)", route: "Cancun Airport → Playa del Carmen", alt: 45, spd: 76, hdg: 208, color: "#a855f7" }
+        ],
+        buildings: [
+          { lat: 21.161, lon: -86.803, h: 78, label: "Shark Tower Puerto Cancun (78m)" },
+          { lat: 21.133, lon: -86.745, h: 65, label: "Punta Cancun Resort Core (65m)" },
+          { lat: 21.036, lon: -86.875, h: 32, label: "MMUN Airport Control Tower (32m)" }
+        ]
+      },
+      new_york: {
+        name: "New York City", state: "New York", county: "5 Boroughs",
+        lat: 40.7128, lon: -74.0060, zoom: 12.4, tilt: 38, bearing: 0,
+        pop: "8,335,817", metroPop: "20,140,000", income: "$76,607", gdp: "$2.16T",
+        housing: "3,650,000 Units", airport: "JFK / LGA / EWR", pax: "145.4M Pax",
+        infraCount: "128 Substations", aqi: "AQI 45 (GOOD)", elev: "33 ft · 10 m",
+        desc: "Global financial, diplomatic, and cultural capital; dense 3D urban core and highest transit ridership in North America.",
+        cams: [
+          { id: "nyc-01", name: "CAM-01 · Times Square (Broadway & 45th St)", heading: 180 },
+          { id: "nyc-02", name: "CAM-02 · Brooklyn Bridge & East River Navway", heading: 240 },
+          { id: "nyc-03", name: "CAM-03 · JFK Airport Runway 13L Approach", heading: 135 }
+        ],
+        radio: [
+          { id: "jfk_twr", label: "119.100 MHz · JFK New York Tower ATC", msg: 'Delta 402 Heavy, wind 140 at 12 knots, cleared to land Runway 13L.' },
+          { id: "nypd_city", label: "476.387 MHz · NYPD Citywide Tactical Dispatch", msg: 'All units, 10-84 Lower Manhattan corridor, traffic moving steadily.' }
+        ],
+        contacts: [
+          { callsign: "DAL402", type: "flight", name: "Delta Air Lines 402 (A350-900)", route: "LHR → JFK RWY 13L", alt: 2800, spd: 175, hdg: 135, color: "#22d3ee" },
+          { callsign: "FERRY_STATEN", type: "vessel", name: "Staten Island Ferry (Ollie Behnke)", route: "St. George → Whitehall Manhattan", alt: 0, spd: 16.2, hdg: 32, color: "#10b981" }
+        ],
+        buildings: [
+          { lat: 40.7127, lon: -74.0134, h: 541, label: "One World Trade Center (541m)" },
+          { lat: 40.7484, lon: -73.9857, h: 381, label: "Empire State Building (381m)" },
+          { lat: 40.7587, lon: -73.9787, h: 427, label: "One Vanderbilt Tower (427m)" }
+        ]
+      },
+      los_angeles: {
+        name: "Los Angeles", state: "California", county: "Los Angeles County",
+        lat: 34.0522, lon: -118.2437, zoom: 12.0, tilt: 35, bearing: 0,
+        pop: "3,822,238", metroPop: "12,997,000", income: "$76,244", gdp: "$1.22T",
+        housing: "1,520,000 Units", airport: "LAX (Los Angeles Int'l)", pax: "75.1M Pax",
+        infraCount: "114 Substations", aqi: "AQI 58 (MODERATE)", elev: "285 ft · 87 m",
+        desc: "Pacific Rim trade gateway; entertainment and aerospace capital with the busiest container port complex in the Western Hemisphere.",
+        cams: [
+          { id: "lax-01", name: "CAM-01 · LAX Sepulveda Blvd Runway 24L Insepction", heading: 250 },
+          { id: "lax-02", name: "CAM-02 · Port of Los Angeles Vincent Thomas Bridge", heading: 180 },
+          { id: "lax-03", name: "CAM-03 · Hollywood & Highland Boulevard", heading: 90 }
+        ],
+        radio: [
+          { id: "lax_twr", label: "120.950 MHz · LAX Tower North", msg: 'United 1024, wind 250 at 9, cleared to land Runway 24R.' }
+        ],
+        contacts: [
+          { callsign: "UAL1024", type: "flight", name: "United Airlines 1024 (B787-9)", route: "HND → LAX RWY 24R", alt: 3100, spd: 182, hdg: 250, color: "#22d3ee" },
+          { callsign: "CONTAINER_MAERSK", type: "vessel", name: "Maersk Mc-Kinney Moller (18,000 TEU)", route: "Port of LA Channel Entry", alt: 0, spd: 9.8, hdg: 340, color: "#10b981" }
+        ],
+        buildings: [
+          { lat: 34.0500, lon: -118.2590, h: 335, label: "Wilshire Grand Center (335m)" },
+          { lat: 34.0512, lon: -118.2543, h: 310, label: "U.S. Bank Tower (310m)" }
+        ]
+      },
+      miami: {
+        name: "Miami", state: "Florida", county: "Miami-Dade County",
+        lat: 25.7617, lon: -80.1918, zoom: 12.3, tilt: 36, bearing: 0,
+        pop: "449,514", metroPop: "6,138,000", income: "$60,946", gdp: "$442B",
+        housing: "232,000 Units", airport: "MIA (Miami Int'l)", pax: "52.3M Pax",
+        infraCount: "Subsea Cable Landing Station (NAP)", aqi: "AQI 29 (EXCELLENT)", elev: "6 ft · 2 m",
+        desc: "Gateway to the Americas; primary submarine cable interconnection hub for Latin America and Caribbean data routes.",
+        cams: [
+          { id: "mia-01", name: "CAM-01 · PortMiami Cruise Basin & Government Cut", heading: 110 },
+          { id: "mia-02", name: "CAM-02 · Biscayne Bay & Brickell Skyline", heading: 200 }
+        ],
+        radio: [
+          { id: "mia_twr", label: "118.300 MHz · MIA Tower ATC", msg: 'American 924, wind 090 at 11, cleared to land Runway 08L.' }
+        ],
+        contacts: [
+          { callsign: "AAL924", type: "flight", name: "American Airlines 924 (B777-200)", route: "EZE → MIA RWY 08L", alt: 2900, spd: 178, hdg: 88, color: "#22d3ee" },
+          { callsign: "CRUISE_ICON", type: "vessel", name: "Icon of the Seas (Royal Caribbean)", route: "PortMiami Channel Departure", alt: 0, spd: 12.4, hdg: 105, color: "#10b981" }
+        ],
+        buildings: [
+          { lat: 25.7667, lon: -80.1912, h: 265, label: "Panorama Tower Brickell (265m)" },
+          { lat: 25.7725, lon: -80.1895, h: 240, label: "Aston Martin Residences (249m)" }
+        ]
+      },
+      washington_dc: {
+        name: "Washington", state: "District of Columbia", county: "Federal District",
+        lat: 38.9072, lon: -77.0369, zoom: 12.4, tilt: 35, bearing: 0,
+        pop: "678,972", metroPop: "6,385,000", income: "$101,027", gdp: "$635B",
+        housing: "354,000 Units", airport: "DCA / IAD", pax: "50.1M Pax",
+        infraCount: "National Power & Fiber Ring", aqi: "AQI 34 (GOOD)", elev: "72 ft · 22 m",
+        desc: "Seat of the United States federal government; protected airspace (Special Flight Rules Area P-56) and defense intelligence nexus.",
+        cams: [
+          { id: "dc-01", name: "CAM-01 · National Mall & U.S. Capitol Grounds", heading: 90 },
+          { id: "dc-02", name: "CAM-02 · Potomac River & Key Bridge", heading: 140 }
+        ],
+        radio: [
+          { id: "dca_twr", label: "119.100 MHz · Reagan DCA Tower (River Visual)", msg: 'USAirways 184, follow the river visual runway 19, cleared to land.' }
+        ],
+        contacts: [
+          { callsign: "AF1_EXEC", type: "military", name: "USAF C-32A (Air Force Executive 1)", route: "ADW (Andrews) Tactical Departure", alt: 4200, spd: 250, hdg: 160, color: "#f59e0b" },
+          { callsign: "USCG_POTOMAC", type: "vessel", name: "US Coast Guard Defender Boat", route: "Potomac Security Patrol", alt: 0, spd: 22.0, hdg: 175, color: "#10b981" }
+        ],
+        buildings: [
+          { lat: 38.8899, lon: -77.0090, h: 88, label: "United States Capitol Dome (88m)" },
+          { lat: 38.8895, lon: -77.0353, h: 169, label: "Washington Monument Obelisk (169m)" }
+        ]
+      }
+    };
+
+    // Global application state
+    const STATE = {
+      cityKey: "nashville",
+      cam: { lat: 36.1627, lon: -86.7816, zoom: 12.2, tilt: 35, bearing: 0, autoOrbit: false },
+      flyAnim: null,
+      optics: "normal",
+      mapStack: "google3d",
+      layers: {
+        flights: true, military: true, vessels: true, satellites: true,
+        buildings_3d: true, cctv: true, traffic: true, transit: true,
+        power_grid: true, telecom_fiber: true, emergency_services: true, gnss_jam: true,
+        nexrad: true, wildfires: true, earthquakes: true, air_quality: true,
+        atc_radio: true, police_scanner: true, aprs_lora: true
+      },
+      cleanMode: false,
+      synthAudio: false,
+      activeCctvId: "bna-01",
+      activeRadioId: "bna_twr",
+      selectedContactId: "AAL1204",
+      tick: 0
+    };
+
+    // DOM & Canvas Setup
+    const canvas = document.getElementById("gev-canvas");
+    const ctx = canvas.getContext("2d");
+
+    function resizeCanvas() {
+      canvas.width = window.innerWidth * window.devicePixelRatio;
+      canvas.height = window.innerHeight * window.devicePixelRatio;
+      ctx.setTransform(window.devicePixelRatio, 0, 0, window.devicePixelRatio, 0, 0);
+    }
+    window.addEventListener("resize", resizeCanvas);
+    resizeCanvas();
+
+    function showToast(msg) {
+      const t = document.getElementById("omni-toast");
+      t.textContent = msg;
+      t.classList.remove("hidden");
+      clearTimeout(window._toastTimer);
+      window._toastTimer = setTimeout(() => t.classList.add("hidden"), 2500);
+    }
+
+    // Projection engine
+    function latLonToMercatorNorm(lat, lon) {
+      const clampedLat = Math.max(-85.0511, Math.min(85.0511, lat));
+      const sinLat = Math.sin((clampedLat * Math.PI) / 180);
+      return { nx: (lon + 180) / 360, ny: 0.5 - Math.log((1 + sinLat) / (1 - sinLat)) / (4 * Math.PI) };
+    }
+
+    function projectLatLon(lat, lon, altM = 0) {
+      const w = window.innerWidth, h = window.innerHeight;
+      const worldSize = 256 * Math.pow(2, STATE.cam.zoom);
+      const camM = latLonToMercatorNorm(STATE.cam.lat, STATE.cam.lon);
+      const ptM = latLonToMercatorNorm(lat, lon);
+      let dx = (ptM.nx - camM.nx) * worldSize;
+      if (dx > worldSize / 2) dx -= worldSize;
+      if (dx < -worldSize / 2) dx += worldSize;
+      const dy = (ptM.ny - camM.ny) * worldSize;
+
+      const rad = (-STATE.cam.bearing * Math.PI) / 180;
+      const rx = dx * Math.cos(rad) - dy * Math.sin(rad);
+      const ry = dx * Math.sin(rad) + dy * Math.cos(rad);
+
+      const tiltRad = (STATE.cam.tilt * Math.PI) / 180;
+      const pitchScaleY = Math.cos(tiltRad);
+      const altLift = (altM * 0.015 * Math.pow(1.22, STATE.cam.zoom - 11)) * Math.sin(tiltRad + 0.2);
+
+      return { x: w / 2 + rx, y: h / 2 + ry * pitchScaleY - altLift, groundY: h / 2 + ry * pitchScaleY };
+    }
+
+    function flyToCity(cityKey) {
+      const c = CITIES[cityKey] || CITIES.nashville;
+      STATE.cityKey = cityKey;
+      STATE.flyAnim = {
+        startLat: STATE.cam.lat, startLon: STATE.cam.lon,
+        startZoom: STATE.cam.zoom, startTilt: STATE.cam.tilt,
+        targetLat: c.lat, targetLon: c.lon,
+        targetZoom: c.zoom, targetTilt: c.tilt,
+        startTime: performance.now(), durationMs: 1100
+      };
+      updateCityUi(c);
+      showToast(`🎯 Centered on ${c.name}, ${c.state}`);
+    }
+
+    function updateCityUi(c) {
+      document.getElementById("city-active-badge").textContent = `📍 ${c.name.toUpperCase()}, ${c.state.toUpperCase()}`;
+      document.getElementById("reticle-target-coords").textContent = `${c.lat.toFixed(4)}°N ${Math.abs(c.lon).toFixed(4)}°W`;
+      document.getElementById("reticle-metro-label").textContent = `THEATER: ${c.name.toUpperCase()} (${c.state.toUpperCase()})`;
+      document.getElementById("clean-status-label").textContent = `📍 ${c.name.toUpperCase()}, ${c.state.toUpperCase()} · FULL SCREEN`;
+
+      // Dossier card
+      document.getElementById("dossier-city-name").textContent = `${c.name.toUpperCase()}, ${c.state.toUpperCase()}`;
+      document.getElementById("dossier-state-badge").textContent = `USA · ${c.county.toUpperCase()}`;
+      document.getElementById("dossier-summary-desc").textContent = c.desc;
+      document.getElementById("metric-pop").textContent = c.pop;
+      document.getElementById("metric-metro-pop").textContent = `Metro: ${c.metroPop}`;
+      document.getElementById("metric-income").textContent = c.income;
+      document.getElementById("metric-gdp").textContent = `Metro GDP: ${c.gdp}`;
+      document.getElementById("metric-housing").textContent = c.housing;
+      document.getElementById("metric-airport").textContent = c.airport;
+      document.getElementById("metric-airport-pax").textContent = c.pax;
+      document.getElementById("metric-infra-count").textContent = c.infraCount;
+      document.getElementById("metric-aqi").textContent = c.aqi;
+      document.getElementById("metric-elev").textContent = c.elev;
+
+      // Cams
+      document.getElementById("cctv-count-badge").textContent = c.cams.length;
+      STATE.activeCctvId = c.cams[0].id;
+      document.getElementById("cctv-cam-title").textContent = c.cams[0].name;
+      document.getElementById("cctv-tech-specs").textContent = `${c.cams[0].resolution || "1080p"} · ${c.cams[0].fps || 30} FPS · HDG ${c.cams[0].heading}°`;
+      document.getElementById("cctv-dot-system-label").textContent = c.dotSystem || "State DOT Traffic Management System";
+      const dotLink = document.getElementById("btn-open-dot-portal");
+      if (dotLink) dotLink.href = c.dotUrl || "https://smartway.tn.gov/traffic";
+
+      renderCamList(c, STATE.camFilter || "all");
+
+      // Radio
+      const radioSel = document.getElementById("radio-channel-select");
+      radioSel.innerHTML = c.radio.map((r) => `<option value="${r.id}">${r.label}</option>`).join("");
+      document.getElementById("radio-transcript-display").textContent = `[RADIO] "${c.radio[0].msg}"`;
+
+      // Contacts
+      const contactsBox = document.getElementById("contacts-list");
+      contactsBox.innerHTML = c.contacts.map((ct) => `
+        <div data-contact="${ct.callsign}" class="contact-row p-2 rounded bg-slate-900/90 border border-slate-800 hover:border-cyan-400 cursor-pointer flex items-center justify-between">
+          <div>
+            <div class="font-bold text-cyan-300 text-[11px]">${ct.callsign} · <span class="text-white font-normal">${ct.name}</span></div>
+            <div class="text-[10px] text-slate-400">${ct.route}</div>
+          </div>
+          <div class="text-right text-[10px] text-slate-300">
+            <div>${ct.spd} kt</div>
+            <div class="text-cyan-400">${ct.alt ? ct.alt + ' ft' : ct.hdg + '°'}</div>
+          </div>
+        </div>
+      `).join("");
+    }
+
+    // Canvas main render loop
+    function render() {
+      STATE.tick++;
+      const w = window.innerWidth, h = window.innerHeight;
+
+      // Camera animation interpolation
+      if (STATE.flyAnim) {
+        const now = performance.now();
+        const rawT = Math.min(1, (now - STATE.flyAnim.startTime) / STATE.flyAnim.durationMs);
+        const ease = rawT < 0.5 ? 2 * rawT * rawT : 1 - Math.pow(-2 * rawT + 2, 2) / 2;
+        STATE.cam.lat = STATE.flyAnim.startLat + (STATE.flyAnim.targetLat - STATE.flyAnim.startLat) * ease;
+        STATE.cam.lon = STATE.flyAnim.startLon + (STATE.flyAnim.targetLon - STATE.flyAnim.startLon) * ease;
+        STATE.cam.zoom = STATE.flyAnim.startZoom + (STATE.flyAnim.targetZoom - STATE.flyAnim.startZoom) * ease;
+        STATE.cam.tilt = STATE.flyAnim.startTilt + (STATE.flyAnim.targetTilt - STATE.flyAnim.startTilt) * ease;
+        if (rawT >= 1) STATE.flyAnim = null;
+      }
+
+      // Background canvas fill based on map source
+      ctx.fillStyle = STATE.mapStack === 'sar' ? '#08080c' : STATE.mapStack === 'osm' ? '#0d131f' : '#07101e';
+      ctx.fillRect(0, 0, w, h);
+
+      // Coordinate graticule grid
+      ctx.strokeStyle = "rgba(34, 211, 238, 0.08)";
+      ctx.lineWidth = 1;
+      const step = 0.05;
+      for (let lat = STATE.cam.lat - 0.4; lat <= STATE.cam.lat + 0.4; lat += step) {
+        const p1 = projectLatLon(lat, STATE.cam.lon - 0.5);
+        const p2 = projectLatLon(lat, STATE.cam.lon + 0.5);
+        ctx.beginPath(); ctx.moveTo(p1.x, p1.y); ctx.lineTo(p2.x, p2.y); ctx.stroke();
+      }
+      for (let lon = STATE.cam.lon - 0.5; lon <= STATE.cam.lon + 0.5; lon += step) {
+        const p1 = projectLatLon(STATE.cam.lat - 0.4, lon);
+        const p2 = projectLatLon(STATE.cam.lat + 0.4, lon);
+        ctx.beginPath(); ctx.moveTo(p1.x, p1.y); ctx.lineTo(p2.x, p2.y); ctx.stroke();
+      }
+
+      const activeCity = CITIES[STATE.cityKey] || CITIES.nashville;
+
+      // 3D Extruded Buildings (if enabled)
+      if (STATE.layers.buildings_3d && activeCity.buildings) {
+        activeCity.buildings.forEach((b) => {
+          const base = projectLatLon(b.lat, b.lon, 0);
+          const top = projectLatLon(b.lat, b.lon, b.h * 1.5);
+          const bw = 24, bd = 14;
+          const wallH = Math.max(10, base.y - top.y);
+
+          // Walls
+          ctx.fillStyle = "rgba(14, 116, 144, 0.55)";
+          ctx.strokeStyle = "rgba(34, 211, 238, 0.75)";
+          ctx.lineWidth = 1;
+          ctx.beginPath();
+          ctx.moveTo(top.x - bw / 2, top.y);
+          ctx.lineTo(top.x, top.y + bd / 2);
+          ctx.lineTo(top.x, top.y + bd / 2 + wallH);
+          ctx.lineTo(top.x - bw / 2, top.y + wallH);
+          ctx.closePath();
+          ctx.fill(); ctx.stroke();
+
+          // Roof
+          ctx.fillStyle = "rgba(34, 211, 238, 0.45)";
+          ctx.beginPath();
+          ctx.moveTo(top.x, top.y - bd / 2);
+          ctx.lineTo(top.x + bw / 2, top.y);
+          ctx.lineTo(top.x, top.y + bd / 2);
+          ctx.lineTo(top.x - bw / 2, top.y);
+          ctx.closePath();
+          ctx.fill(); ctx.stroke();
+
+          // Label
+          ctx.fillStyle = "#ffffff";
+          ctx.font = '600 9px "JetBrains Mono", monospace';
+          ctx.fillText(b.label, top.x - bw / 2, top.y - bd / 2 - 4);
+        });
+      }
+
+      // Live Traffic Cameras (CCTV) Cones
+      if (STATE.layers.cctv && activeCity.cams) {
+        activeCity.cams.forEach((cm) => {
+          const p = projectLatLon(activeCity.lat + (cm.heading % 5) * 0.008, activeCity.lon + (cm.heading % 7) * 0.008, 15);
+          ctx.fillStyle = cm.id === STATE.activeCctvId ? "#22d3ee" : "#0284c7";
+          ctx.beginPath(); ctx.arc(p.x, p.y, cm.id === STATE.activeCctvId ? 6 : 4, 0, Math.PI * 2); ctx.fill();
+        });
+      }
+
+      // Radar & Weather Streamlines (if enabled)
+      if (STATE.layers.nexrad) {
+        ctx.strokeStyle = "rgba(56, 189, 248, 0.22)";
+        ctx.lineWidth = 1.4;
+        for (let i = 0; i < 18; i++) {
+          const lat = activeCity.lat - 0.15 + (i % 6) * 0.06;
+          const lon = activeCity.lon - 0.2 + Math.floor(i / 6) * 0.12;
+          const phase = ((STATE.tick * 0.003 + i * 0.15) % 1) * 0.05;
+          const pStart = projectLatLon(lat + phase, lon + phase);
+          const pEnd = projectLatLon(lat + phase + 0.015, lon + phase + 0.025);
+          ctx.beginPath(); ctx.moveTo(pStart.x, pStart.y); ctx.lineTo(pEnd.x, pEnd.y); ctx.stroke();
+        }
+      }
+
+      // Contacts (Air, Marine, Ground)
+      if (activeCity.contacts) {
+        activeCity.contacts.forEach((ct) => {
+          if (ct.type === "flight" && !STATE.layers.flights) return;
+          if (ct.type === "military" && !STATE.layers.military) return;
+          if (ct.type === "vessel" && !STATE.layers.vessels) return;
+
+          const p = projectLatLon(activeCity.lat + (ct.hdg % 4) * 0.012, activeCity.lon + (ct.hdg % 6) * 0.012, (ct.alt || 0) * 0.3048);
+          ctx.fillStyle = ct.color;
+          ctx.strokeStyle = "#ffffff";
+          ctx.lineWidth = 1.2;
+          ctx.beginPath(); ctx.arc(p.x, p.y, 5, 0, Math.PI * 2); ctx.fill();
+
+          ctx.font = '600 10px "JetBrains Mono", monospace';
+          ctx.fillText(ct.callsign, p.x + 8, p.y - 2);
+          ctx.fillStyle = "#94a3b8";
+          ctx.font = '400 9px "JetBrains Mono", monospace';
+          ctx.fillText(`${ct.spd} kt · ${ct.alt ? ct.alt + ' ft' : ct.route}`, p.x + 8, p.y + 9);
+        });
+      }
+
+      // Simulated CCTV Mini Preview Canvas
+      const cctvC = document.getElementById("cctv-preview-canvas");
+      if (cctvC) {
+        const cctx = cctvC.getContext("2d");
+        cctx.fillStyle = "#0f172a";
+        cctx.fillRect(0, 0, cctvC.width, cctvC.height);
+        cctx.strokeStyle = "rgba(34, 211, 238, 0.4)";
+        cctx.strokeRect(10, 10, cctvC.width - 20, cctvC.height - 20);
+        cctx.fillStyle = "#38bdf8";
+        cctx.font = '9px "JetBrains Mono", monospace';
+        cctx.fillText(`SENSOR CAM STREAM · ${activeCity.name.toUpperCase()}`, 16, 26);
+        cctx.fillText(`UTC: ${new Date().toISOString().slice(11, 19)} · 30 FPS`, 16, 40);
+        cctx.fillStyle = "rgba(16, 185, 129, 0.7)";
+        cctx.fillRect(16, 52, 120, 2);
+      }
+
+      requestAnimationFrame(render);
+    }
+
+    // ACCORDION ROLL-UP ENGINE ("Like Elements Together · Rolled up or Full Length")
+    document.querySelectorAll(".accordion-header").forEach((header) => {
+      header.addEventListener("click", () => {
+        const targetId = header.getAttribute("data-accordion");
+        const content = document.getElementById(targetId);
+        const arrow = header.querySelector(".accordion-arrow");
+        const isCollapsed = content.classList.contains("accordion-collapsed");
+
+        if (isCollapsed) {
+          content.classList.remove("accordion-collapsed");
+          if (arrow) arrow.textContent = "▾";
+        } else {
+          content.classList.add("accordion-collapsed");
+          if (arrow) arrow.textContent = "▸";
+        }
+      });
+    });
+
+    // Roll Up All button
+    let allRolledUp = false;
+    document.getElementById("btn-rollup-all").addEventListener("click", () => {
+      allRolledUp = !allRolledUp;
+      document.querySelectorAll(".accordion-content").forEach((c) => {
+        c.classList.toggle("accordion-collapsed", allRolledUp);
+      });
+      document.querySelectorAll(".accordion-arrow").forEach((a) => {
+        a.textContent = allRolledUp ? "▸" : "▾";
+      });
+      document.getElementById("btn-rollup-all").textContent = allRolledUp ? "⇳ EXPAND ALL" : "⇳ ROLL UP ALL";
+      showToast(allRolledUp ? "⇳ All category accordions rolled up (Max map area)" : "⇳ All category accordions expanded");
+    });
+
+    // Clean View Mode (Hides all floating panels for 100% full map viewport)
+    function setCleanMode(active) {
+      STATE.cleanMode = active;
+      const topBar = document.getElementById("top-bar");
+      const leftRail = document.getElementById("left-rail");
+      const rightRail = document.getElementById("right-rail");
+      const bottomBar = document.getElementById("bottom-bar");
+      const pill = document.getElementById("clean-mode-restore-pill");
+
+      if (active) {
+        topBar.classList.add("hidden");
+        leftRail.classList.add("hidden");
+        rightRail.classList.add("hidden");
+        bottomBar.classList.add("hidden");
+        pill.classList.remove("hidden");
+        pill.classList.add("flex");
+        showToast("👁️ Clean View: 100% full screen dedicated to location map");
+      } else {
+        topBar.classList.remove("hidden");
+        leftRail.classList.remove("hidden");
+        rightRail.classList.remove("hidden");
+        bottomBar.classList.remove("hidden");
+        pill.classList.add("hidden");
+        pill.classList.remove("flex");
+        showToast("🎛️ Panels restored");
+      }
+    }
+    document.getElementById("btn-clean-mode").addEventListener("click", () => setCleanMode(true));
+    document.getElementById("btn-exit-clean-mode").addEventListener("click", () => setCleanMode(false));
+
+    // Panel collapse toggles
+    document.getElementById("btn-toggle-left-dock").addEventListener("click", () => {
+      document.getElementById("left-rail-body").classList.toggle("hidden");
+    });
+    document.getElementById("btn-toggle-right-dock").addEventListener("click", () => {
+      document.querySelectorAll(".tab-pane").forEach((p) => p.classList.toggle("hidden"));
+    });
+    document.getElementById("btn-fold-docks").addEventListener("click", () => {
+      const leftHidden = document.getElementById("left-rail").classList.toggle("hidden");
+      document.getElementById("right-rail").classList.toggle("hidden");
+      showToast(leftHidden ? "Folded side panels" : "Expanded side panels");
+    });
+
+    // Layer toggles
+    document.querySelectorAll(".layer-toggle").forEach((chk) => {
+      chk.addEventListener("change", (e) => {
+        const id = e.target.getAttribute("data-layer-id");
+        STATE.layers[id] = e.target.checked;
+        const count = Object.values(STATE.layers).filter(Boolean).length;
+        document.getElementById("active-layer-badge").textContent = `${count} ON`;
+      });
+    });
+
+    let allLayersOn = true;
+    document.getElementById("btn-all-layers-toggle").addEventListener("click", () => {
+      allLayersOn = !allLayersOn;
+      document.querySelectorAll(".layer-toggle").forEach((chk) => {
+        chk.checked = allLayersOn;
+        const id = chk.getAttribute("data-layer-id");
+        STATE.layers[id] = allLayersOn;
+      });
+      document.getElementById("btn-all-layers-toggle").textContent = allLayersOn ? "ALL OFF" : "ALL ON";
+      const count = Object.values(STATE.layers).filter(Boolean).length;
+      document.getElementById("active-layer-badge").textContent = `${count} ON`;
+      showToast(allLayersOn ? "All data layers enabled" : "All data layers disabled");
+    });
+
+    // Right Rail Tab Switcher
+    document.querySelectorAll(".right-tab").forEach((tab) => {
+      tab.addEventListener("click", () => {
+        const target = tab.getAttribute("data-tab");
+        document.querySelectorAll(".right-tab").forEach((t) => {
+          const active = t.getAttribute("data-tab") === target;
+          t.className = `right-tab flex-1 py-1.5 text-center font-mono-tech text-[11px] ${
+            active ? "font-semibold text-cyan-300 border-b-2 border-cyan-400 bg-cyan-500/10" : "text-slate-400 hover:text-white"
+          }`;
+        });
+        document.querySelectorAll(".tab-pane").forEach((p) => {
+          p.classList.toggle("hidden", p.id !== `tab-${target}`);
+        });
+      });
+    });
+
+    // City Selector
+    document.getElementById("city-selector").addEventListener("change", (e) => {
+      flyToCity(e.target.value);
+    });
+
+    // Search Engine (Any US city, address or zip)
+    function executeSearch() {
+      const q = document.getElementById("search-input").value.trim().toLowerCase();
+      if (!q) return;
+
+      // Check preset cities
+      for (const [key, c] of Object.entries(CITIES)) {
+        if (q.includes(c.name.toLowerCase()) || q.includes(key.replace("_", " "))) {
+          document.getElementById("city-selector").value = key;
+          flyToCity(key);
+          return;
+        }
+      }
+
+      // Dynamic US Geocoding Coordinates Pattern
+      const coordMatch = q.match(/(-?\d+\.\d+)\s*,\s*(-?\d+\.\d+)/);
+      if (coordMatch) {
+        STATE.cam.lat = parseFloat(coordMatch[1]);
+        STATE.cam.lon = parseFloat(coordMatch[2]);
+        STATE.cam.zoom = 12.5;
+        showToast(`🔍 Flew to coordinates ${STATE.cam.lat.toFixed(4)}, ${STATE.cam.lon.toFixed(4)}`);
+        return;
+      }
+
+      // Fallback: Geocode via OpenStreetMap US Gazetteer
+      fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(q + ", USA")}&limit=1`)
+        .then((r) => r.json())
+        .then((data) => {
+          if (data && data.length > 0) {
+            const hit = data[0];
+            STATE.cam.lat = parseFloat(hit.lat);
+            STATE.cam.lon = parseFloat(hit.lon);
+            STATE.cam.zoom = 12.4;
+            document.getElementById("city-active-badge").textContent = `📍 ${hit.display_name.split(",")[0].toUpperCase()}`;
+            document.getElementById("reticle-target-coords").textContent = `${STATE.cam.lat.toFixed(4)}°N ${Math.abs(STATE.cam.lon).toFixed(4)}°W`;
+            showToast(`📍 Located: ${hit.display_name.slice(0, 36)}`);
+          } else {
+            showToast(`⚠️ Could not geocode "${q}"`);
+          }
+        })
+        .catch(() => {
+          showToast(`📍 Panning to "${q}"`);
+        });
+    }
+    document.getElementById("btn-search-go").addEventListener("click", executeSearch);
+    document.getElementById("search-input").addEventListener("keydown", (e) => {
+      if (e.key === "Enter") executeSearch();
+    });
+
+    // 1-Click Download index.html Button
+    document.getElementById("btn-download-app").addEventListener("click", () => {
+      const fullHtml = '<!DOCTYPE html>\n' + document.documentElement.outerHTML;
+      const blob = new Blob([fullHtml], { type: "text/html;charset=utf-8" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "index.html";
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      setTimeout(() => URL.revokeObjectURL(url), 2000);
+      showToast("⬇️ Downloaded complete index.html!");
+    });
+
+    // Copy Button
+    document.getElementById("btn-copy-app").addEventListener("click", () => {
+      const fullHtml = '<!DOCTYPE html>\n' + document.documentElement.outerHTML;
+      try { navigator.clipboard.writeText(fullHtml); } catch(_) {}
+      showToast("📋 Copied complete HTML to clipboard!");
+    });
+
+    // Optics Filters
+    document.querySelectorAll(".optics-btn").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const style = btn.getAttribute("data-optics");
+        STATE.optics = style;
+        const wrapper = document.getElementById("viewport-wrapper");
+        wrapper.className = "relative w-full h-full overflow-hidden";
+        if (style !== "normal") wrapper.classList.add(`optics-${style}`);
+        document.querySelectorAll(".optics-btn").forEach((b) => {
+          b.className = `optics-btn px-2 py-0.5 rounded ${b.getAttribute("data-optics") === style ? "bg-cyan-500/25 border border-cyan-400 text-cyan-200" : "hover:bg-slate-800 text-slate-300"}`;
+        });
+        showToast(`🎨 Optics: ${style.toUpperCase()}`);
+      });
+    });
+
+    // Map Stack
+    document.querySelectorAll(".mapstack-btn").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const stack = btn.getAttribute("data-mapstack");
+        STATE.mapStack = stack;
+        document.querySelectorAll(".mapstack-btn").forEach((b) => {
+          b.className = `mapstack-btn px-2 py-0.5 rounded ${b.getAttribute("data-mapstack") === stack ? "bg-cyan-500/25 border border-cyan-400 text-cyan-200" : "hover:bg-slate-800 text-slate-300"}`;
+        });
+        showToast(`🗺️ Map Stack: ${stack.toUpperCase()}`);
+      });
+    });
+
+    // Tilt & North Up
+    document.getElementById("btn-tilt-map").addEventListener("click", () => {
+      STATE.cam.tilt = STATE.cam.tilt === 0 ? 35 : STATE.cam.tilt === 35 ? 58 : 0;
+      document.getElementById("btn-tilt-map").textContent = `🧭 3D: ${STATE.cam.tilt}°`;
+    });
+    document.getElementById("btn-north-up").addEventListener("click", () => {
+      STATE.cam.bearing = 0;
+      showToast("▲ Oriented North Up");
+    });
+
+    // Synthesized Audio Toggle
+    document.getElementById("btn-toggle-synth-audio").addEventListener("click", (e) => {
+      STATE.synthAudio = !STATE.synthAudio;
+      e.target.textContent = `🔈 AUDIO: ${STATE.synthAudio ? 'ON' : 'OFF'}`;
+      if (STATE.synthAudio) {
+        try {
+          const actx = new (window.AudioContext || window.webkitAudioContext)();
+          const osc = actx.createOscillator();
+          const gain = actx.createGain();
+          osc.frequency.value = 850;
+          gain.gain.value = 0.03;
+          osc.connect(gain); gain.connect(actx.destination);
+          osc.start(); osc.stop(actx.currentTime + 0.1);
+        } catch(_) {}
+      }
+    });
+
+    // Keyboard Shortcuts
+    window.addEventListener("keydown", (e) => {
+      if (["INPUT", "SELECT", "TEXTAREA"].includes(document.activeElement?.tagName)) return;
+      if (e.key.toLowerCase() === "c") {
+        document.getElementById("cockpit-overlay").classList.toggle("hidden");
+      } else if (e.key.toLowerCase() === "u") {
+        setCleanMode(!STATE.cleanMode);
+      } else if (e.key === "Escape") {
+        setCleanMode(false);
+        document.getElementById("cockpit-overlay").classList.add("hidden");
+      }
+    });
+
+    // Canvas Mouse / Touch Gestures
+    let isDragging = false, dragStart = { x: 0, y: 0 };
+    canvas.addEventListener("mousedown", (e) => {
+      isDragging = true;
+      dragStart = { x: e.clientX, y: e.clientY };
+    });
+    window.addEventListener("mousemove", (e) => {
+      if (!isDragging) return;
+      const dx = e.clientX - dragStart.x, dy = e.clientY - dragStart.y;
+      dragStart = { x: e.clientX, y: e.clientY };
+      const scale = Math.pow(2, STATE.cam.zoom) * 1.45;
+      STATE.cam.lon -= dx / scale;
+      STATE.cam.lat += dy / scale;
+      document.getElementById("cursor-telemetry").textContent = `${STATE.cam.lat.toFixed(4)}°N, ${Math.abs(STATE.cam.lon).toFixed(4)}°W · ALT ${(42000 / Math.pow(2, STATE.cam.zoom)).toFixed(1)} KM`;
+    });
+    window.addEventListener("mouseup", () => { isDragging = false; });
+    canvas.addEventListener("wheel", (e) => {
+      e.preventDefault();
+      const delta = e.deltaY < 0 ? 0.4 : -0.4;
+      STATE.cam.zoom = Math.max(2.0, Math.min(16.0, STATE.cam.zoom + delta));
+    }, { passive: false });
+
+    // Touch support for mobile / iPad
+    canvas.addEventListener("touchmove", (e) => {
+      if (e.touches.length === 1) {
+        const t = e.touches[0];
+        if (!isDragging) { isDragging = true; dragStart = { x: t.clientX, y: t.clientY }; return; }
+        const dx = t.clientX - dragStart.x, dy = t.clientY - dragStart.y;
+        dragStart = { x: t.clientX, y: t.clientY };
+        const scale = Math.pow(2, STATE.cam.zoom) * 1.45;
+        STATE.cam.lon -= dx / scale;
+        STATE.cam.lat += dy / scale;
+      }
+    }, { passive: false });
+    canvas.addEventListener("touchend", () => { isDragging = false; });
+
+    // Camera List Renderer with Category Filter
+    STATE.camFilter = "all";
+    function renderCamList(c, filter) {
+      STATE.camFilter = filter;
+      const camList = document.getElementById("cctv-cam-list");
+      const filtered = c.cams.filter((cm) => filter === "all" || cm.category === filter || (filter === "waterway" && cm.category === "beach"));
+      
+      camList.innerHTML = filtered.map((cm) => `
+        <div data-cam="${cm.id}" class="cam-row p-1.5 rounded bg-slate-900 hover:bg-slate-800 border ${cm.id === STATE.activeCctvId ? 'border-cyan-400' : 'border-slate-800'} cursor-pointer flex items-center justify-between transition">
+          <div class="truncate pr-1">
+            <div class="text-white text-[11px] font-medium truncate">${cm.name}</div>
+            <div class="text-[9px] text-slate-400">${cm.resolution || "1080p"} · HDG ${cm.heading}°</div>
+          </div>
+          <span class="text-[9px] px-1.5 py-0.5 rounded bg-cyan-500/20 text-cyan-300 uppercase shrink-0">${cm.category || "live"}</span>
+        </div>
+      `).join("");
+
+      camList.querySelectorAll(".cam-row").forEach((el) => {
+        el.addEventListener("click", () => {
+          const id = el.getAttribute("data-cam");
+          const found = c.cams.find((x) => x.id === id);
+          if (found) {
+            STATE.activeCctvId = found.id;
+            document.getElementById("cctv-cam-title").textContent = found.name;
+            document.getElementById("cctv-tech-specs").textContent = `${found.resolution || "1080p"} · ${found.fps || 30} FPS · HDG ${found.heading}°`;
+            renderCamList(c, STATE.camFilter);
+            showToast(`📹 Tuned Camera: ${found.name}`);
+          }
+        });
+      });
+    }
+
+    document.querySelectorAll(".cam-filter-btn").forEach((btn) => {
+      btn.addEventListener("click", () => {
+        const filter = btn.getAttribute("data-cam-filter");
+        document.querySelectorAll(".cam-filter-btn").forEach((b) => {
+          const active = b.getAttribute("data-cam-filter") === filter;
+          b.className = `cam-filter-btn px-2 py-0.5 rounded text-[10px] ${
+            active ? "bg-cyan-500/25 border border-cyan-400 text-cyan-200" : "bg-slate-800 text-slate-300 hover:text-white"
+          }`;
+        });
+        const c = CITIES[STATE.cityKey] || CITIES.nashville;
+        renderCamList(c, filter);
+      });
+    });
+
+    // Startup initialization
+    window.addEventListener("load", () => {
+      updateCityUi(CITIES.nashville);
+      render();
+    });
+  </script>
+
+</body></html>
