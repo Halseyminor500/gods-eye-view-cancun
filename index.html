@@ -5092,6 +5092,7 @@ export function createSargassumLayer({ viewer, Cesium }) {
         }
       }
 
+      if (window.GEV_DEMO) window.GEV_DEMO.draw(ctx);
       renderCctvPreview();
       requestAnimationFrame(renderGlobe);
     }
@@ -7110,4 +7111,5 @@ export function createSargassumLayer({ viewer, Cesium }) {
     });
   </script>
 
+<script src="demographics.js"></script>
 </body></html>
