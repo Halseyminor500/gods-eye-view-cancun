@@ -6,10 +6,13 @@
 (function () {
   'use strict';
 
-  const ACS_YEAR = 2022;
-  const PLACES_DATASET = 'cwsq-ngmh'; // CDC PLACES tract-level (GIS-friendly); change here if CDC rotates the release
-  const NRI_URL =
-    'https://services.arcgis.com/XG15cJAlne2vxtgt/arcgis/rest/services/National_Risk_Index_Census_Tracts/FeatureServer/0/query';
+  // Sources are validated live in the browser (see validateSources) and disabled unless their data was published within MAX_AGE_DAYS.
+  const MAX_AGE_DAYS = 730;
+  const ACS_YEARS_TO_TRY = [2024, 2023];
+  let ACS_YEAR = null;
+  const PLACES_DATASET = 'cwsq-ngmh'; // CDC PLACES census-tract data, 2025 release (long format: locationname, measureid, data_value)
+  const NRI_SERVICE = 'https://services.arcgis.com/XG15cJAlne2vxtgt/arcgis/rest/services/National_Risk_Index_Census_Tracts/FeatureServer';
+  const NRI_URL = NRI_SERVICE + '/0/query';
   const TIGER_ROOT = 'https://tigerweb.geo.census.gov/arcgis/rest/services/TIGERweb/tigerWMS_Current/MapServer';
 
   // ---------------------------------------------------------------- key / provider registry
@@ -19,14 +22,6 @@
     tiger: { name: 'Census TIGERweb', cost: 'free' },
     cdc: { name: 'CDC PLACES (Socrata)', keyName: 'SOCRATA_APP_TOKEN', cost: 'free', keyOptional: true, signup: 'https://data.cdc.gov/profile/edit/developer_settings' },
     fema: { name: 'FEMA National Risk Index', cost: 'free' },
-    epa: { name: 'EPA EJScreen', cost: 'free', archived: true },
-    hud: { name: 'HUD USER API', keyName: 'HUD_API_TOKEN', cost: 'key', signup: 'https://www.huduser.gov/hudapi/public/register' },
-    fbi: { name: 'FBI Crime Data Explorer', keyName: 'FBI_API_KEY', cost: 'key', signup: 'https://api.data.gov/signup/' },
-    fcc: { name: 'FCC Broadband Data Collection', keyName: 'FCC_BDC_TOKEN', cost: 'key', signup: 'https://broadbandmap.fcc.gov/data-download' },
-    oi: { name: 'Opportunity Insights (bulk CSV)', cost: 'free', bulk: true },
-    lodes: { name: 'Census LEHD LODES (bulk)', cost: 'free', bulk: true },
-    esri: { name: 'Esri GeoEnrichment', keyName: 'ESRI_API_KEY', cost: 'metered', signup: 'https://developers.arcgis.com/sign-up/' },
-    geocodio: { name: 'Geocodio Census Append', keyName: 'GEOCODIO_API_KEY', cost: 'metered', signup: 'https://www.geocod.io/' }
   };
 
   const store = {
@@ -36,11 +31,14 @@
   const keys = store.get('gev_demo_keys', {});
   const depleted = store.get('gev_demo_depleted', {}); // provider -> true when credits ran out
 
+  const VALID = {}; // pid -> {status:'ok'|'stale'|'unavailable', note}
+
   function providerState(pid) {
     const p = PROVIDERS[pid];
     if (depleted[pid]) return 'depleted';
-    if (p.archived) return 'archived';
-    if (p.bulk) return 'bulk';
+    const v = VALID[pid];
+    if (v && v.status !== 'ok') return v.status;
+    if (!v && pid !== 'tiger') return 'checking';
     if (p.keyName && !p.keyOptional && !keys[p.keyName]) return 'needkey';
     if (p.cost === 'metered') return 'metered';
     return 'ok';
@@ -95,15 +93,15 @@
   ].map(([id, win, label, codes, calc, fmt]) => ({ id, win, label, src: 'acs', provider: 'census', codes, calc, fmt }));
 
   const PLACES_LAYERS = [
-    ['obesity', 'Obesity (adults)', 'obesity_crudeprev'],
-    ['diabetes', 'Diagnosed diabetes', 'diabetes_crudeprev'],
-    ['bphigh', 'High blood pressure', 'bphigh_crudeprev'],
-    ['csmoking', 'Current smoking', 'csmoking_crudeprev'],
-    ['casthma', 'Current asthma', 'casthma_crudeprev'],
-    ['depression', 'Depression', 'depression_crudeprev'],
-    ['mhlth', 'Poor mental health (14+ days)', 'mhlth_crudeprev'],
-    ['access2', 'No health insurance (18–64)', 'access2_crudeprev'],
-    ['lpa', 'No leisure-time physical activity', 'lpa_crudeprev']
+    ['obesity', 'Obesity (adults)', 'OBESITY'],
+    ['diabetes', 'Diagnosed diabetes', 'DIABETES'],
+    ['bphigh', 'High blood pressure', 'BPHIGH'],
+    ['csmoking', 'Current smoking', 'CSMOKING'],
+    ['casthma', 'Current asthma', 'CASTHMA'],
+    ['depression', 'Depression', 'DEPRESSION'],
+    ['mhlth', 'Poor mental health (14+ days)', 'MHLTH'],
+    ['access2', 'No health insurance (18–64)', 'ACCESS2'],
+    ['lpa', 'No leisure-time physical activity', 'LPA']
   ].map(([id, label, col]) => ({ id: 'pl_' + id, win: 'health', label: label + ' %', src: 'places', provider: 'cdc', col, fmt: 'p' }));
 
   const NRI_LAYERS = [
@@ -113,21 +111,7 @@
     ['resl', 'Community resilience score', 'RESL_SCORE']
   ].map(([id, label, col]) => ({ id: 'nri_' + id, win: 'risk', label, src: 'nri', provider: 'fema', col, fmt: 'd' }));
 
-  // Catalog-only entries: connector not wired yet (needs key, bulk file, or retired by publisher).
-  const STUB_LAYERS = [
-    ['ejscreen', 'risk', 'EJScreen environmental-justice indexes (EPA retired the public tool in 2025)', 'epa'],
-    ['hud_fmr', 'conn', 'HUD fair-market rents & low-income areas', 'hud'],
-    ['fbi_crime', 'conn', 'FBI agency-level crime counts (city point data)', 'fbi'],
-    ['fcc_bdc', 'conn', 'FCC broadband availability by provider', 'fcc'],
-    ['oi_mobility', 'mobility', 'Opportunity Atlas: upward mobility by tract', 'oi'],
-    ['oi_outcomes', 'mobility', 'Opportunity Atlas: incarceration & teen birth rates', 'oi'],
-    ['lodes_work', 'mobility', 'LODES: jobs by workplace tract', 'lodes'],
-    ['lodes_home', 'mobility', 'LODES: workers by home tract', 'lodes'],
-    ['esri_geo', 'premium', 'Esri GeoEnrichment: 15k+ consumer & demographic variables', 'esri'],
-    ['geocodio', 'premium', 'Geocodio: census tract / ACS append for address lists', 'geocodio']
-  ].map(([id, win, label, provider]) => ({ id, win, label, src: 'stub', provider }));
-
-  const ALL_LAYERS = [...ACS_LAYERS, ...PLACES_LAYERS, ...NRI_LAYERS, ...STUB_LAYERS];
+  const ALL_LAYERS = [...ACS_LAYERS, ...PLACES_LAYERS, ...NRI_LAYERS];
 
   const WINDOWS = [
     { id: 'ctl', icon: '🗺️', title: 'City & API Keys', control: true },
@@ -136,16 +120,14 @@
     { id: 'race', icon: '🌎', title: 'Race, Ethnicity & Nativity' },
     { id: 'edu', icon: '🎓', title: 'Education & Households' },
     { id: 'house', icon: '🏠', title: 'Housing & Commute' },
+    { id: 'conn', icon: '📡', title: 'Internet Access' },
     { id: 'health', icon: '🩺', title: 'Health · CDC PLACES' },
-    { id: 'risk', icon: '🌪️', title: 'Hazard & Environment' },
-    { id: 'conn', icon: '📡', title: 'Connectivity & Public Safety' },
-    { id: 'mobility', icon: '🛣️', title: 'Mobility & Jobs' },
-    { id: 'premium', icon: '💳', title: 'Premium Enrichment' }
+    { id: 'risk', icon: '🌪️', title: 'Hazard & Resilience · FEMA NRI' }
   ];
 
   // ---------------------------------------------------------------- state
   const S = {
-    places: store.get('gev_demo_top500_v1', null), // [{name,state,place,pop}]
+    places: null, // [{name,state,place,pop}], loaded after ACS vintage is validated
     city: null, // loaded city record
     activeLayer: null, // one choropleth at a time
     opacity: 0.55,
@@ -203,15 +185,46 @@
   }
   const toast = (m) => (typeof showToast === 'function' ? showToast(m) : console.log(m));
 
+  // ---------------------------------------------------------------- live source validation
+  const ageDays = (ms) => (Date.now() - ms) / 864e5;
+  const isoDay = (ms) => new Date(ms).toISOString().slice(0, 10);
+  async function validateSources() {
+    const k = keys.CENSUS_API_KEY ? `&key=${keys.CENSUS_API_KEY}` : '';
+    VALID.census = { status: 'unavailable', note: 'Census API not reachable' };
+    for (const y of ACS_YEARS_TO_TRY) {
+      try {
+        const r = await fetch(`https://api.census.gov/data/${y}/acs/acs5?get=B01003_001E&for=state:06${k}`);
+        if (r.ok) { ACS_YEAR = y; VALID.census = { status: 'ok', note: `ACS ${y - 4}–${y} 5-year estimates` }; break; }
+      } catch (e) { /* try older vintage */ }
+    }
+    try {
+      const m = await (await fetch(`https://data.cdc.gov/api/views/${PLACES_DATASET}.json`)).json();
+      const ms = m.rowsUpdatedAt * 1000;
+      VALID.cdc = ageDays(ms) <= MAX_AGE_DAYS
+        ? { status: 'ok', note: `${m.name}, updated ${isoDay(ms)}` }
+        : { status: 'stale', note: `last updated ${isoDay(ms)} (older than 2 years)` };
+    } catch (e) { VALID.cdc = { status: 'unavailable', note: 'CDC metadata not reachable' }; }
+    try {
+      const m = await (await fetch(`${NRI_SERVICE}?f=json`)).json();
+      const ms = m.editingInfo && m.editingInfo.lastEditDate;
+      if (!ms) VALID.fema = { status: 'unavailable', note: 'publication date not reported by service' };
+      else VALID.fema = ageDays(ms) <= MAX_AGE_DAYS
+        ? { status: 'ok', note: `service updated ${isoDay(ms)}` }
+        : { status: 'stale', note: `last updated ${isoDay(ms)} (older than 2 years)` };
+    } catch (e) { VALID.fema = { status: 'unavailable', note: 'FEMA service not reachable' }; }
+    renderAll();
+  }
+
   // ---------------------------------------------------------------- Top-500 places
   async function loadTop500() {
-    if (S.places) return S.places;
+    if (S.places && S.places.year === ACS_YEAR) return S.places;
+    if (providerState('census') !== 'ok') throw new Error('Census API not validated');
     const k = keys.CENSUS_API_KEY ? `&key=${keys.CENSUS_API_KEY}` : '';
     const j = await getJSON(`https://api.census.gov/data/${ACS_YEAR}/acs/acs5?get=NAME,B01003_001E&for=place:*&in=state:*${k}`, 'census');
     const rows = j.slice(1).map((r) => ({ name: r[0], pop: +r[1], state: r[2], place: r[3] })).filter((r) => r.pop > 0);
     rows.sort((a, b) => b.pop - a.pop);
     S.places = rows.slice(0, 500);
-    store.set('gev_demo_top500_v1', S.places);
+    S.places.year = ACS_YEAR;
     return S.places;
   }
 
@@ -279,12 +292,13 @@
 
   async function loadPLACES(tracts) {
     const counties = [...new Set(tracts.map((t) => t.state + t.county))];
-    const cols = PLACES_LAYERS.map((l) => l.col);
+    const ids = PLACES_LAYERS.map((l) => `'${l.col}'`).join(',');
     const tok = keys.SOCRATA_APP_TOKEN ? `&$$app_token=${keys.SOCRATA_APP_TOKEN}` : '';
     const out = {};
     for (const sc of counties) {
-      const url = `https://data.cdc.gov/resource/${PLACES_DATASET}.json?$select=locationname,${cols.join(',')}&$where=${encodeURIComponent(`starts_with(locationname,'${sc}')`)}&$limit=5000${tok}`;
-      (await getJSON(url, 'cdc')).forEach((r) => { out[r.locationname] = r; });
+      const where = `starts_with(locationname,'${sc}') AND datavaluetypeid='CrdPrv' AND measureid in(${ids})`;
+      const url = `https://data.cdc.gov/resource/${PLACES_DATASET}.json?$select=locationname,measureid,data_value&$where=${encodeURIComponent(where)}&$limit=50000${tok}`;
+      (await getJSON(url, 'cdc')).forEach((r) => { (out[r.locationname] || (out[r.locationname] = {}))[r.measureid] = r.data_value; });
     }
     return out;
   }
@@ -301,7 +315,7 @@
   }
 
   // ---------------------------------------------------------------- city loading
-  const cityKey = (pl) => `${pl.state}${pl.place}`;
+  const cityKey = (pl) => `${ACS_YEAR}-${pl.state}${pl.place}`;
   async function ensureCity(pl, opts = {}) {
     const key = cityKey(pl);
     let rec = await idbGet(key);
@@ -400,8 +414,7 @@
 
   async function setActive(id) {
     const layer = layerById(id);
-    if (!layer || layer.src === 'stub') return;
-    if (providerState(layer.provider) === 'depleted') return;
+    if (!layer || providerState(layer.provider) !== 'ok') return;
     S.activeLayer = id;
     renderAll();
     if (S.city) {
@@ -515,8 +528,9 @@
     if (st === 'depleted') return '<span class="badge b-off" title="Data available, but unfunded: API credits are depleted so requests are failing">UNFUNDED</span>';
     if (st === 'metered') return '<span class="badge b-cost" title="Free quota, then paid">$ PAID</span>';
     if (st === 'needkey') return '<span class="badge b-key" title="Free key required — add it in City & API Keys">KEY</span>';
-    if (st === 'archived') return '<span class="badge b-soon" title="Publisher retired the live service">ARCHIVED</span>';
-    if (st === 'bulk') return '<span class="badge b-soon" title="Bulk-file dataset; no live API connector yet">BULK</span>';
+    if (st === 'stale') return `<span class="badge b-off" title="${(VALID[layer.provider].note || '').replace(/"/g, '')}">STALE</span>`;
+    if (st === 'unavailable') return `<span class="badge b-off" title="${(VALID[layer.provider].note || '').replace(/"/g, '')}">UNAVAILABLE</span>`;
+    if (st === 'checking') return '<span class="badge b-soon">CHECKING…</span>';
     return `<span class="badge b-free">FREE${p.keyOptional ? '+' : ''}</span>`;
   }
 
@@ -541,8 +555,8 @@
     }
     const rows = ALL_LAYERS.filter((l) => l.win === w.id).map((l) => {
       const st = providerState(l.provider);
-      const cls = st === 'depleted' ? 'off' : l.src === 'stub' ? 'pend' : S.activeLayer === l.id ? 'active' : '';
-      const tt = l.src === 'stub' ? `${PROVIDERS[l.provider].name}: catalog entry — connector not wired yet` : `${PROVIDERS[l.provider].name}`;
+      const cls = st === 'depleted' ? 'off' : st !== 'ok' ? 'pend' : S.activeLayer === l.id ? 'active' : '';
+      const tt = `${PROVIDERS[l.provider].name}${VALID[l.provider] && VALID[l.provider].note ? ' — ' + VALID[l.provider].note : ''}`;
       return `<div class="demo-row ${cls}" data-layer="${l.id}" title="${tt}">
         <span style="width:12px">${S.activeLayer === l.id ? '◉' : '○'}</span><span class="flex-1">${l.label}</span>${badge(l)}</div>`;
     }).join('');
@@ -580,7 +594,7 @@
     root.querySelectorAll('.demo-row[data-layer]').forEach((r) => (r.onclick = () => {
       const l = layerById(r.dataset.layer);
       if (r.classList.contains('off')) return toast(`${PROVIDERS[l.provider].name}: data exists but API funds are depleted`);
-      if (l.src === 'stub') return toast(`${l.label}: connector not wired yet`);
+      if (providerState(l.provider) !== 'ok' && providerState(l.provider) !== 'needkey') return toast(`${PROVIDERS[l.provider].name}: ${(VALID[l.provider] && VALID[l.provider].note) || 'not validated yet'}`);
       if (providerState(l.provider) === 'needkey') return toast(`Add ${PROVIDERS[l.provider].keyName} in City & API Keys`);
       S.activeLayer === l.id ? clearActive() : setActive(l.id);
     }));
@@ -617,5 +631,5 @@
 
   window.GEV_DEMO = { draw, state: S, markDepleted, clearDepleted, layers: ALL_LAYERS, selectCity, loadTop500 };
   renderAll();
-  loadTop500().then(renderAll).catch((e) => setStatus('Top-500 list not loaded: ' + e.message, true));
+  validateSources().then(() => loadTop500()).then(renderAll).catch((e) => setStatus('Top-500 list not loaded: ' + e.message, true));
 })();
